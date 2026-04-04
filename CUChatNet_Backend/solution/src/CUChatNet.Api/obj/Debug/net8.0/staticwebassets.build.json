@@ -1,12 +1,1 @@
-{
-  "Version": 1,
-  "Hash": "XzO9cuBIhZh/bypCmvnx4pGxOpD1TebhtixIO1Go+yE=",
-  "Source": "CUChatNet.Api",
-  "BasePath": "_content/CUChatNet.Api",
-  "Mode": "Default",
-  "ManifestType": "Build",
-  "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
-}
+{"Version":1,"Hash":"oGsa3NHm6AR3ji7hjTpuA2I6l6tzx6hxSvBHqp1ZK6w=","Source":"CUChatNet.Api","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}

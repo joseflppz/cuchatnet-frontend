@@ -1,5 +1,21 @@
 [
   {
+    "ContainingType": "CUChatNet.Api.Controllers.AdminAuthController",
+    "Method": "GetDevToken",
+    "RelativePath": "api/admin/auth/token-dev",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "CUChatNet.Api.Controllers.DevTokenRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "CUChatNet.Api.Controllers.AdminConfigController",
     "Method": "GetConfig",
     "RelativePath": "api/admin/config",

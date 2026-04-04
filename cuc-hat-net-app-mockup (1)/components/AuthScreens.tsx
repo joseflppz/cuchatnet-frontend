@@ -1,5 +1,4 @@
 'use client'
-'use client'
 
 import React, { useState } from "react"
 import { useApp } from '@/contexts/AppContext'
@@ -16,7 +15,6 @@ export function LoginScreen() {
     setPhone(e.target.value.replace(/\D/g, '').slice(0, 8))
   }
 
-  // 👇 AQUÍ va handleLogin (DENTRO del componente)
   const handleLogin = async () => {
     if (!phone || phone.length < 8) {
       showToast('Por favor ingresa un número válido', 'error')
@@ -24,31 +22,29 @@ export function LoginScreen() {
     }
 
     try {
-  const fullPhone = `${country}${phone}`
+      const fullPhone = `${country}${phone}`
 
-  const response = await fetch('/api/verify/send', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone: fullPhone }),
-  })
+      const response = await fetch('/api/verify/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: fullPhone }),
+      })
 
-  const data = await response.json()
+      const data = await response.json()
 
-  if (!response.ok) {
-    showToast(data.error || 'Error enviando código', 'error')
-    return
+      if (!response.ok) {
+        showToast(data.error || 'Error enviando código', 'error')
+        return
+      }
+
+      localStorage.setItem('verify_phone', fullPhone)
+      showToast('Código enviado correctamente', 'success')
+      setCurrentView('verify-sms')
+
+    } catch (error) {
+      showToast('Error de conexión', 'error')
+    }
   }
-
-  // ✅ AQUÍ VA
-  localStorage.setItem('verify_phone', fullPhone)
-
-  showToast('Código enviado correctamente', 'success')
-  setCurrentView('verify-sms')
-
-} catch (error) {
-  showToast('Error de conexión', 'error')
-}
-}
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-white flex items-center justify-center px-4">
@@ -125,42 +121,39 @@ export function VerifySmsScreen() {
     setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
   }
 
- const handleVerify = async () => {
-  if (code.length !== 6) {
-    showToast('Por favor ingresa un código de 6 dígitos', 'error')
-    return
-  }
-
-  try {
-    setLoading(true)
-
-    const phone = localStorage.getItem('verify_phone')
-
-    const response = await fetch('/api/verify/check', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, code }),
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      showToast(data.error || 'Código incorrecto', 'error')
-      setLoading(false)
+  const handleVerify = async () => {
+    if (code.length !== 6) {
+      showToast('Por favor ingresa un código de 6 dígitos', 'error')
       return
     }
 
-    showToast('SMS verificado correctamente', 'success')
-    setLoading(false)
-    setCurrentView('profile-setup')
+    try {
+      setLoading(true)
+      const phone = localStorage.getItem('verify_phone')
 
-  } catch (error) {
-    showToast('Error verificando código', 'error')
-    setLoading(false)
+      const response = await fetch('/api/verify/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, code }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        showToast(data.error || 'Código incorrecto', 'error')
+        setLoading(false)
+        return
+      }
+
+      showToast('SMS verificado correctamente', 'success')
+      setLoading(false)
+      setCurrentView('profile-setup')
+
+    } catch (error) {
+      showToast('Error verificando código', 'error')
+      setLoading(false)
+    }
   }
-}
-
-
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-white flex items-center justify-center px-4">
@@ -222,24 +215,17 @@ export function ProfileSetupScreen() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [photo, setPhoto] = useState<string | undefined>(undefined)
-
   const [loading, setLoading] = useState(false)
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
     const reader = new FileReader()
-    reader.onload = (event) => {
-      setPhoto(event.target?.result as string)
-    }
+    reader.onload = (event) => setPhoto(event.target?.result as string)
     reader.readAsDataURL(file)
   }
 
-  const handleRemovePhoto = () => {
-    setPhoto(undefined)
-
-  }
+  const handleRemovePhoto = () => setPhoto(undefined)
 
   const handleSetup = () => {
     if (!name.trim()) {
@@ -250,21 +236,19 @@ export function ProfileSetupScreen() {
     setLoading(true)
 
     setTimeout(() => {
-        const user = {
-          id: 'user-' + Date.now(),
-          phone: '+506 8765 4321',
-          name,
-          photo,
-          description,
-          status: 'available' as const,
-          createdAt: new Date().toISOString(),
-          active: true,
-        }
-
+      const user = {
+        id: 'user-' + Date.now(),
+        phone: '+506 8765 4321',
+        name,
+        photo,
+        description,
+        status: 'available' as const,
+        createdAt: new Date().toISOString(),
+        active: true,
+      }
 
       setCurrentUser(user)
 
-      // Initialize mock data
       setChats([
         { id: '1', participantId: 'p1', participantName: 'Ana García', participantPhoto: '👩', lastMessage: 'Perfecto, nos vemos luego', lastMessageTime: '14:32', unread: 0, pinned: false, archived: false, isGroup: false, silenced: false },
         { id: '2', participantId: 'p2', participantName: 'Carlos López', participantPhoto: '👨', lastMessage: 'Enviado el documento', lastMessageTime: '12:15', unread: 2, pinned: true, archived: false, isGroup: false, silenced: false },
@@ -292,7 +276,6 @@ export function ProfileSetupScreen() {
       ])
 
       setLoading(false)
-      // Persist user to localStorage
       localStorage.setItem('cuchatnet_currentUser', JSON.stringify(user))
       showToast('Cuenta creada con éxito', 'success')
       setTimeout(() => setCurrentView('chat'), 500)
@@ -329,21 +312,13 @@ export function ProfileSetupScreen() {
                 </div>
                 <div className="flex gap-2 w-full">
                   <label className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      className="hidden"
-                    />
+                    <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                     <div className="bg-muted hover:bg-muted/80 text-muted-foreground text-sm py-2 px-3 rounded-lg text-center cursor-pointer transition">
                       Seleccionar imagen
                     </div>
                   </label>
                   {photo && (
-                    <button
-                      onClick={handleRemovePhoto}
-                      className="bg-secondary/10 hover:bg-secondary/20 text-secondary text-sm py-2 px-3 rounded-lg transition"
-                    >
+                    <button onClick={handleRemovePhoto} className="bg-secondary/10 hover:bg-secondary/20 text-secondary text-sm py-2 px-3 rounded-lg transition">
                       Quitar
                     </button>
                   )}
@@ -396,19 +371,42 @@ export function AdminLoginScreen() {
   const { setCurrentView, setIsAdmin, showToast } = useApp()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!username || !password) {
       showToast('Por favor completa todos los campos', 'error')
       return
     }
 
-    if (username === 'admin' && password === 'admin123') {
+    try {
+      setLoading(true)
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7086'
+
+      const res = await fetch(`${API_URL}/api/admin/auth/token-dev`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuarioId: 1 }),
+      })
+
+      if (!res.ok) {
+        showToast('Credenciales incorrectas', 'error')
+        setLoading(false)
+        return
+      }
+
+      const data = await res.json()
+      localStorage.setItem('admin_token', data.token)
+      localStorage.setItem('admin_nombre', data.nombre)
+
       setIsAdmin(true)
       showToast('Sesión administrativa iniciada', 'success')
       setTimeout(() => setCurrentView('admin-dashboard'), 500)
-    } else {
-      showToast('Credenciales incorrectas', 'error')
+
+    } catch {
+      showToast('Error de conexión con el servidor', 'error')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -452,17 +450,14 @@ export function AdminLoginScreen() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
-            <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90">
-              Iniciar Sesión
+            <Button onClick={handleLogin} disabled={loading} className="w-full bg-primary hover:bg-primary/90">
+              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Button>
-
-            <p className="text-center text-xs text-muted-foreground">
-              💡 Usuario: <span className="font-semibold">admin</span> | Contraseña: <span className="font-semibold">admin123</span>
-            </p>
           </div>
         </div>
       </div>
