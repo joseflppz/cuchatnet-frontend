@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "XzO9cuBIhZh/bypCmvnx4pGxOpD1TebhtixIO1Go+yE=",
+  "Source": "CUChatNet.Api",
+  "BasePath": "_content/CUChatNet.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

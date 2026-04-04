@@ -1,0 +1,36 @@
+# v0 runtime files (bien)
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+
+# Env (MUY IMPORTANTE)
+.env
+.env.local
+.env*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Backend .NET (MUY IMPORTANTE)
+bin/
+obj/
+.vs/
+
+# Otros
+coverage/
