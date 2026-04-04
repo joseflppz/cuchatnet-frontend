@@ -1,15 +1,10 @@
-# v0 runtime files (bien)
-__v0_runtime_loader.js
-__v0_devtools.tsx
-__v0_jsx-dev-runtime.ts
-
 # Node / Next.js
 node_modules/
 .next/
 out/
 build/
 
-# Env (MUY IMPORTANTE)
+# Env
 .env
 .env.local
 .env*.local
@@ -27,7 +22,7 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Backend .NET (MUY IMPORTANTE)
+# .NET
 bin/
 obj/
 .vs/
