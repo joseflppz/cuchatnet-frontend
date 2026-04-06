@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CUChatNet.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c58d09e637de07f445c651004022e567ad8cc49c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bbbddf6aca57d1e4d5fe814c751f012c8b5c9959")]
 [assembly: System.Reflection.AssemblyProductAttribute("CUChatNet.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CUChatNet.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
