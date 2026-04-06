@@ -1,167 +1,115 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Save, RotateCcw, CheckCircle2, AlertTriangle, Mail, MessageSquare, Link2 } from 'lucide-react'
+import { Save, RotateCcw, CheckCircle2, AlertTriangle } from 'lucide-react'
 
-type ConfigState = {
-  appName: string
-  maxGroupSize: string
-  messageTimeout: string
-  maxFileSize: string
-  smtpServer: string
-  smtpPort: string
-  smsProvider: 'Twilio' | 'AWS SNS' | 'Nexmo'
-  apiEndpoint: string
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7086"
+
+function getToken() {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem("admin_token")
 }
 
-const STORAGE_KEY = 'cuchatnet_admin_config_v1'
+async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const token = getToken()
+  const res = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options?.headers,
+    },
+  })
+  if (!res.ok) throw new Error(`Error ${res.status}`)
+  return res.json()
+}
+
+interface Config {
+  appName: string
+  maxGroupSize: number
+  messageTimeout: number
+  maxFileSize: number
+  smtpServer: string | null
+  smtpPort: number | null
+  smsProvider: string | null
+  apiEndpoint: string | null
+  maintenanceMode: boolean
+  e2ERequired: boolean
+  autoArchiveInactivity: number
+}
+
+function Banner({ variant, title, text }: { variant: 'success' | 'warning'; title: string; text: string }) {
+  const styles = variant === 'success'
+    ? 'bg-green-50 border-green-200 text-green-800'
+    : 'bg-amber-50 border-amber-200 text-amber-800'
+  const Icon = variant === 'success' ? CheckCircle2 : AlertTriangle
+  return (
+    <div className={`border rounded-lg p-4 flex gap-3 items-start ${styles}`}>
+      <Icon className="w-5 h-5 mt-0.5" />
+      <div>
+        <p className="text-sm font-semibold">{title}</p>
+        <p className="text-sm">{text}</p>
+      </div>
+    </div>
+  )
+}
 
 export default function AdminConfigView() {
-  const defaultConfig: ConfigState = useMemo(
-    () => ({
-      appName: 'CUChatNet',
-      maxGroupSize: '500',
-      messageTimeout: '30',
-      maxFileSize: '100',
-      smtpServer: 'mail.cuc.edu',
-      smtpPort: '587',
-      smsProvider: 'Twilio',
-      apiEndpoint: 'https://api.cuc.edu',
-    }),
-    []
-  )
-
-  const [config, setConfig] = useState<ConfigState>(defaultConfig)
+  const [config, setConfig] = useState<Config | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [dirty, setDirty] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const [testEmail, setTestEmail] = useState<'idle' | 'ok' | 'fail'>('idle')
-  const [testSms, setTestSms] = useState<'idle' | 'ok' | 'fail'>('idle')
-  const [testApi, setTestApi] = useState<'idle' | 'ok' | 'fail'>('idle')
-
-  // Cargar config guardada (simulado persistente)
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<ConfigState>
-        setConfig({ ...defaultConfig, ...parsed })
-      }
-    } catch {
-      // si falla, usamos defaults
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    apiFetch<Config>('/api/admin/config')
+      .then(setConfig)
+      .catch(() => setError('Error al cargar configuración'))
+      .finally(() => setLoading(false))
   }, [])
 
-  // Detectar cambios sin guardar
-  useEffect(() => {
+  const handleSave = async () => {
+    if (!config) return
+    setSaving(true)
     try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      const savedConfig = raw ? ({ ...defaultConfig, ...(JSON.parse(raw) as Partial<ConfigState>) } as ConfigState) : defaultConfig
-      setDirty(JSON.stringify(savedConfig) !== JSON.stringify(config))
+      await apiFetch('/api/admin/config', {
+        method: 'PUT',
+        body: JSON.stringify(config),
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
     } catch {
-      setDirty(true)
+      setError('Error al guardar configuración')
+    } finally {
+      setSaving(false)
     }
-  }, [config, defaultConfig])
-
-  const handleSave = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
-    setSaved(true)
-    setDirty(false)
-    setTimeout(() => setSaved(false), 2500)
   }
 
-  const handleReset = () => {
-    setConfig(defaultConfig)
-    setTestEmail('idle')
-    setTestSms('idle')
-    setTestApi('idle')
-  }
+  if (loading) return (
+    <div className="p-6 flex items-center justify-center h-40">
+      <p className="text-muted-foreground">Cargando configuración...</p>
+    </div>
+  )
 
-  const runFakeTest = (type: 'email' | 'sms' | 'api') => {
-    // “Prueba” simulada con resultado determinístico simple
-    const ok =
-      (type === 'email' && config.smtpServer.trim().length > 2 && Number(config.smtpPort) > 0) ||
-      (type === 'sms' && config.smsProvider.length > 0) ||
-      (type === 'api' && config.apiEndpoint.trim().startsWith('http'))
+  if (error) return (
+    <div className="p-6 flex items-center justify-center h-40">
+      <p className="text-red-500">{error}</p>
+    </div>
+  )
 
-    if (type === 'email') setTestEmail(ok ? 'ok' : 'fail')
-    if (type === 'sms') setTestSms(ok ? 'ok' : 'fail')
-    if (type === 'api') setTestApi(ok ? 'ok' : 'fail')
-
-    setTimeout(() => {
-      if (type === 'email') setTestEmail('idle')
-      if (type === 'sms') setTestSms('idle')
-      if (type === 'api') setTestApi('idle')
-    }, 2500)
-  }
-
-  const Banner = ({
-    variant,
-    title,
-    text,
-  }: {
-    variant: 'success' | 'warning'
-    title: string
-    text: string
-  }) => {
-    const styles =
-      variant === 'success'
-        ? 'bg-green-50 border-green-200 text-green-800'
-        : 'bg-amber-50 border-amber-200 text-amber-800'
-    const Icon = variant === 'success' ? CheckCircle2 : AlertTriangle
-
-    return (
-      <div className={`border rounded-lg p-4 flex gap-3 items-start ${styles}`}>
-        <Icon className="w-5 h-5 mt-0.5" />
-        <div>
-          <p className="text-sm font-semibold">{title}</p>
-          <p className="text-sm">{text}</p>
-        </div>
-      </div>
-    )
-  }
+  if (!config) return null
 
   return (
     <div className="p-6 space-y-6 max-w-4xl">
-      {saved && (
-        <Banner
-          variant="success"
-          title="Configuración guardada"
-          text="Los cambios fueron almacenados localmente (mockup) y se mantendrán al recargar."
-        />
-      )}
+      {saved && <Banner variant="success" title="Configuración guardada" text="Los cambios fueron guardados correctamente." />}
 
-      {dirty && !saved && (
-        <Banner
-          variant="warning"
-          title="Cambios sin guardar"
-          text="Tienes modificaciones pendientes. Presiona “Guardar cambios” para conservarlas."
-        />
-      )}
-
-      {/* General Settings */}
       <Card className="p-6 border border-border">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div>
-            <h3 className="text-lg font-bold text-foreground">Configuración General</h3>
-            <p className="text-xs text-muted-foreground">Parámetros globales del sistema</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleReset} className="gap-2">
-              <RotateCcw className="w-4 h-4" />
-              Restablecer
-            </Button>
-          </div>
-        </div>
-
+        <h3 className="text-lg font-bold text-foreground mb-4">Configuración General</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
-              Nombre de la Aplicación
-            </label>
+            <label className="block text-sm font-medium text-foreground mb-1">Nombre de la Aplicación</label>
             <input
               type="text"
               value={config.appName}
@@ -169,225 +117,134 @@ export default function AdminConfigView() {
               className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
             />
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
-                Tamaño Máximo de Grupo
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-1">Tamaño máximo de grupo</label>
               <input
                 type="number"
                 value={config.maxGroupSize}
-                onChange={(e) => setConfig({ ...config, maxGroupSize: e.target.value })}
+                onChange={(e) => setConfig({ ...config, maxGroupSize: Number(e.target.value) })}
                 className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
               />
-              <p className="text-xs text-muted-foreground mt-1">Ej: 500</p>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
-                Timeout de Mensajes (min)
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-1">Timeout mensajes (min)</label>
               <input
                 type="number"
                 value={config.messageTimeout}
-                onChange={(e) => setConfig({ ...config, messageTimeout: e.target.value })}
+                onChange={(e) => setConfig({ ...config, messageTimeout: Number(e.target.value) })}
                 className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
               />
-              <p className="text-xs text-muted-foreground mt-1">Ej: 30</p>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
-                Tamaño Máximo Archivo (MB)
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-1">Tamaño máximo archivo (MB)</label>
               <input
                 type="number"
                 value={config.maxFileSize}
-                onChange={(e) => setConfig({ ...config, maxFileSize: e.target.value })}
+                onChange={(e) => setConfig({ ...config, maxFileSize: Number(e.target.value) })}
                 className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
               />
-              <p className="text-xs text-muted-foreground mt-1">Ej: 100</p>
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Auto-archivar inactividad (días)</label>
+            <input
+              type="number"
+              value={config.autoArchiveInactivity}
+              onChange={(e) => setConfig({ ...config, autoArchiveInactivity: Number(e.target.value) })}
+              className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={config.maintenanceMode}
+                onChange={(e) => setConfig({ ...config, maintenanceMode: e.target.checked })}
+                className="w-4 h-4"
+              />
+              <span className="text-sm font-medium text-foreground">Modo mantenimiento</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={config.e2ERequired}
+                onChange={(e) => setConfig({ ...config, e2ERequired: e.target.checked })}
+                className="w-4 h-4"
+              />
+              <span className="text-sm font-medium text-foreground">Requerir cifrado E2E</span>
+            </label>
           </div>
         </div>
       </Card>
 
-      {/* Email Configuration */}
       <Card className="p-6 border border-border">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div>
-            <h3 className="text-lg font-bold text-foreground">Configuración de Email (SMTP)</h3>
-            <p className="text-xs text-muted-foreground">Cuenta de salida y parámetros</p>
-          </div>
-
-          <Button
-            variant="outline"
-            className="gap-2 bg-transparent"
-            onClick={() => runFakeTest('email')}
-          >
-            <Mail className="w-4 h-4" />
-            Probar
-          </Button>
-        </div>
-
-        {testEmail === 'ok' && (
-          <div className="mb-4">
-            <Banner variant="success" title="Prueba SMTP" text="Conexión simulada exitosa." />
-          </div>
-        )}
-        {testEmail === 'fail' && (
-          <div className="mb-4">
-            <Banner variant="warning" title="Prueba SMTP" text="Faltan datos válidos (simulado)." />
-          </div>
-        )}
-
+        <h3 className="text-lg font-bold text-foreground mb-4">Configuración SMTP</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">Servidor SMTP</label>
             <input
               type="text"
-              value={config.smtpServer}
-              onChange={(e) => setConfig({ ...config, smtpServer: e.target.value })}
+              value={config.smtpServer ?? ''}
+              onChange={(e) => setConfig({ ...config, smtpServer: e.target.value || null })}
               className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
             />
           </div>
-
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">Puerto SMTP</label>
             <input
               type="number"
-              value={config.smtpPort}
-              onChange={(e) => setConfig({ ...config, smtpPort: e.target.value })}
+              value={config.smtpPort ?? ''}
+              onChange={(e) => setConfig({ ...config, smtpPort: e.target.value ? Number(e.target.value) : null })}
               className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
       </Card>
 
-      {/* SMS Configuration */}
       <Card className="p-6 border border-border">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div>
-            <h3 className="text-lg font-bold text-foreground">Proveedor de SMS</h3>
-            <p className="text-xs text-muted-foreground">Verificación por código (mock)</p>
-          </div>
-
-          <Button
-            variant="outline"
-            className="gap-2 bg-transparent"
-            onClick={() => runFakeTest('sms')}
-          >
-            <MessageSquare className="w-4 h-4" />
-            Probar
-          </Button>
-        </div>
-
-        {testSms === 'ok' && (
-          <div className="mb-4">
-            <Banner variant="success" title="Prueba SMS" text="Proveedor simulado disponible." />
-          </div>
-        )}
-        {testSms === 'fail' && (
-          <div className="mb-4">
-            <Banner variant="warning" title="Prueba SMS" text="Proveedor no seleccionado (simulado)." />
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Proveedor</label>
-            <select
-              value={config.smsProvider}
-              onChange={(e) =>
-                setConfig({ ...config, smsProvider: e.target.value as ConfigState['smsProvider'] })
-              }
-              className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
-            >
-              <option>Twilio</option>
-              <option>AWS SNS</option>
-              <option>Nexmo</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">API Key</label>
-            <input
-              type="password"
-              placeholder="••••••••••••"
-              className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
-            />
-            <p className="text-xs text-muted-foreground mt-1">No se guarda en el mockup</p>
-          </div>
-        </div>
-      </Card>
-
-      {/* API Configuration */}
-      <Card className="p-6 border border-border">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div>
-            <h3 className="text-lg font-bold text-foreground">API Transaccional</h3>
-            <p className="text-xs text-muted-foreground">Consumo de API (simulado)</p>
-          </div>
-
-          <Button
-            variant="outline"
-            className="gap-2 bg-transparent"
-            onClick={() => runFakeTest('api')}
-          >
-            <Link2 className="w-4 h-4" />
-            Probar
-          </Button>
-        </div>
-
-        {testApi === 'ok' && (
-          <div className="mb-4">
-            <Banner variant="success" title="Prueba API" text="Endpoint válido (simulado)." />
-          </div>
-        )}
-        {testApi === 'fail' && (
-          <div className="mb-4">
-            <Banner
-              variant="warning"
-              title="Prueba API"
-              text="El endpoint debe iniciar con http/https (simulado)."
-            />
-          </div>
-        )}
-
+        <h3 className="text-lg font-bold text-foreground mb-4">SMS y API</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Endpoint API</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Proveedor SMS</label>
             <input
-              type="url"
-              value={config.apiEndpoint}
-              onChange={(e) => setConfig({ ...config, apiEndpoint: e.target.value })}
+              type="text"
+              value={config.smsProvider ?? ''}
+              onChange={(e) => setConfig({ ...config, smsProvider: e.target.value || null })}
+              placeholder="Ej: Twilio"
               className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
             />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Token API</label>
+            <label className="block text-sm font-medium text-foreground mb-1">API Endpoint</label>
             <input
-              type="password"
-              placeholder="••••••••••••"
+              type="url"
+              value={config.apiEndpoint ?? ''}
+              onChange={(e) => setConfig({ ...config, apiEndpoint: e.target.value || null })}
+              placeholder="https://api.ejemplo.com"
               className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
             />
-            <p className="text-xs text-muted-foreground mt-1">No se guarda en el mockup</p>
           </div>
         </div>
       </Card>
 
-      {/* Save Button */}
       <div className="flex items-center justify-end gap-2">
         <Button
-          onClick={handleSave}
-          className="gap-2 bg-primary hover:bg-primary/90"
-          disabled={!dirty}
-          title={!dirty ? 'No hay cambios pendientes' : 'Guardar cambios'}
+          variant="outline"
+          onClick={() => {
+            setLoading(true)
+            apiFetch<Config>('/api/admin/config')
+              .then(setConfig)
+              .finally(() => setLoading(false))
+          }}
+          className="gap-2"
         >
+          <RotateCcw className="w-4 h-4" />
+          Recargar
+        </Button>
+        <Button onClick={handleSave} disabled={saving} className="gap-2 bg-primary hover:bg-primary/90">
           <Save className="w-4 h-4" />
-          Guardar Cambios
+          {saving ? 'Guardando...' : 'Guardar Cambios'}
         </Button>
       </div>
     </div>

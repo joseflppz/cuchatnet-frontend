@@ -1,15 +1,19 @@
 namespace CUChatNet.Api.Dtos;
 
-public record SendVerificationRequest(string Phone);
-public record CheckVerificationRequest(string Phone, string Code);
+public record SendVerificationRequest(string Email);
+
+public record CheckVerificationRequest(string Email, string Code);
 
 public record SetupProfileRequest(
-    string Phone,
+    string Email,
     string Name,
+    string? Phone,
     string? Description,
     string? PhotoUrl,
     string Status = "available"
 );
+
+public record AdminLoginRequest(string Email, string Password);
 
 public record VerifyResponse(
     bool Success,
@@ -22,10 +26,12 @@ public record VerifyResponse(
 public record AuthUserDto(
     long Id,
     string Phone,
+    string? Email,
     string Name,
     string? Photo,
     string? Description,
     string Status,
+    string Role,
     DateTime CreatedAt,
     bool Active
 );

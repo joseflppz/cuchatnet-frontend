@@ -1,4 +1,4 @@
-using CUChatNet.Api.Models;
+﻿using CUChatNet.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CUChatNet.Api.Data;
@@ -26,6 +26,8 @@ public class CUChatNetDbContext : DbContext
     public DbSet<ConfiguracionSistema> ConfiguracionSistema => Set<ConfiguracionSistema>();
     public DbSet<PoliticaSeguridad> PoliticasSeguridad => Set<PoliticaSeguridad>();
     public DbSet<BitacoraEvento> BitacoraEventos => Set<BitacoraEvento>();
+    public DbSet<CodigoVerificacion> CodigosVerificacion => Set<CodigoVerificacion>();
+    public DbSet<PreferenciasUsuario> PreferenciasUsuario => Set<PreferenciasUsuario>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -239,6 +241,20 @@ public class CUChatNetDbContext : DbContext
             entity.Property(x => x.DispositivoId).HasColumnName("DispositivoID");
             entity.Property(x => x.DireccionIp).HasColumnName("DireccionIP");
             entity.Property(x => x.FechaEvento).HasColumnName("FechaEvento");
+        });
+
+        modelBuilder.Entity<CodigoVerificacion>(entity =>
+        {
+            entity.ToTable("CodigosVerificacion");
+            entity.HasKey(x => x.CodigoVerificacionId);
+        });
+
+        modelBuilder.Entity<PreferenciasUsuario>(entity =>
+        {
+            entity.ToTable("PreferenciasUsuario");
+            entity.HasKey(x => x.PreferenciaId);
+            entity.Property(x => x.UsuarioId).HasColumnName("UsuarioID");
+            entity.HasOne(x => x.Usuario).WithMany().HasForeignKey(x => x.UsuarioId);
         });
     }
 }

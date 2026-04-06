@@ -1,19 +1,74 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Users, MessageSquare, Users2, TrendingUp } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7086"
+
+interface Activity {
+  id: number
+  action: string
+  details: string | null
+  timestamp: string
+  severity: string
+}
+
+interface Summary {
+  totalUsers: number
+  activeUsers: number
+  totalGroups: number
+  messagesToday: number
+  recentActivity: Activity[]
+}
+
 export default function AdminDashboardView() {
-  const stats = [
-    { label: 'Usuarios Registrados', value: '1,247', icon: Users, color: 'primary' },
-    { label: 'Usuarios Activos Hoy', value: '487', icon: TrendingUp, color: 'secondary' },
-    { label: 'Mensajes/Día (Prom)', value: '12,543', icon: MessageSquare, color: 'primary' },
-    { label: 'Grupos Activos', value: '324', icon: Users2, color: 'secondary' },
-  ]
+  const [summary, setSummary] = useState<Summary | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
+    fetch(`${API_URL}/api/admin/dashboard/summary`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    })
+      .then(r => r.json())
+      .then(setSummary)
+      .catch(() => setError('Error al cargar el dashboard'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const stats = summary ? [
+    { label: 'Usuarios Registrados', value: summary.totalUsers.toLocaleString(), icon: Users, color: 'primary' },
+    { label: 'Usuarios Activos Hoy', value: summary.activeUsers.toLocaleString(), icon: TrendingUp, color: 'secondary' },
+    { label: 'Mensajes Hoy', value: summary.messagesToday.toLocaleString(), icon: MessageSquare, color: 'primary' },
+    { label: 'Grupos Activos', value: summary.totalGroups.toLocaleString(), icon: Users2, color: 'secondary' },
+  ] : []
+
+  const severityColor: Record<string, string> = {
+    info: 'text-blue-500',
+    warning: 'text-yellow-500',
+    error: 'text-red-500',
+    critical: 'text-red-700',
+  }
+
+  if (loading) return (
+    <div className="p-6 flex items-center justify-center h-64">
+      <p className="text-muted-foreground">Cargando dashboard...</p>
+    </div>
+  )
+
+  if (error) return (
+    <div className="p-6 flex items-center justify-center h-64">
+      <p className="text-red-500">{error}</p>
+    </div>
+  )
 
   return (
     <div className="p-6 space-y-6">
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => {
           const Icon = stat.icon
@@ -33,45 +88,23 @@ export default function AdminDashboardView() {
         })}
       </div>
 
-      {/* Charts Placeholder */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card className="p-6 border border-border">
-          <h3 className="font-semibold text-foreground mb-4">Usuarios por Día</h3>
-          <div className="h-64 bg-muted/30 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📊</div>
-              <p className="text-sm text-muted-foreground">Gráfico de usuarios registrados</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6 border border-border">
-          <h3 className="font-semibold text-foreground mb-4">Mensajes por Hora</h3>
-          <div className="h-64 bg-muted/30 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-4xl mb-2">📈</div>
-              <p className="text-sm text-muted-foreground">Actividad de mensajes</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Recent Activity */}
       <Card className="p-6 border border-border">
         <h3 className="font-semibold text-foreground mb-4">Actividad Reciente</h3>
         <div className="space-y-3">
-          {[
-            { action: 'Usuario registrado', user: 'Juan Pérez', time: 'Hace 2 minutos' },
-            { action: 'Grupo creado', user: 'Equipo Proyecto', time: 'Hace 15 minutos' },
-            { action: 'Usuario iniciado sesión', user: 'Ana García', time: 'Hace 1 hora' },
-            { action: 'Mensaje reportado', user: 'Chat ID: 12345', time: 'Hace 3 horas' },
-          ].map((activity, idx) => (
-            <div key={idx} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+          {summary?.recentActivity.length === 0 && (
+            <p className="text-sm text-muted-foreground">No hay actividad reciente.</p>
+          )}
+          {summary?.recentActivity.map((activity) => (
+            <div key={activity.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
               <div>
-                <p className="text-sm font-medium text-foreground">{activity.action}</p>
-                <p className="text-xs text-muted-foreground">{activity.user}</p>
+                <p className={`text-sm font-medium ${severityColor[activity.severity] ?? 'text-foreground'}`}>
+                  {activity.action}
+                </p>
+                <p className="text-xs text-muted-foreground">{activity.details ?? '—'}</p>
               </div>
-              <span className="text-xs text-muted-foreground">{activity.time}</span>
+              <span className="text-xs text-muted-foreground">
+                {new Date(activity.timestamp).toLocaleString('es-CR')}
+              </span>
             </div>
           ))}
         </div>
