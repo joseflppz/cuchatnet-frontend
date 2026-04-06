@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { Users, MessageSquare, Users2, TrendingUp } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { getDashboardSummary } from '@/lib/api/admin'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7086"
 
 interface Activity {
   id: number
@@ -27,20 +28,25 @@ export default function AdminDashboardView() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    getDashboardSummary()
+    const token = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
+    fetch(`${API_URL}/api/admin/dashboard/summary`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    })
+      .then(r => r.json())
       .then(setSummary)
       .catch(() => setError('Error al cargar el dashboard'))
       .finally(() => setLoading(false))
   }, [])
 
-  const stats = summary
-    ? [
-        { label: 'Usuarios Registrados', value: summary.totalUsers.toLocaleString(), icon: Users, color: 'primary' },
-        { label: 'Usuarios Activos Hoy', value: summary.activeUsers.toLocaleString(), icon: TrendingUp, color: 'secondary' },
-        { label: 'Mensajes Hoy', value: summary.messagesToday.toLocaleString(), icon: MessageSquare, color: 'primary' },
-        { label: 'Grupos Activos', value: summary.totalGroups.toLocaleString(), icon: Users2, color: 'secondary' },
-      ]
-    : []
+  const stats = summary ? [
+    { label: 'Usuarios Registrados', value: summary.totalUsers.toLocaleString(), icon: Users, color: 'primary' },
+    { label: 'Usuarios Activos Hoy', value: summary.activeUsers.toLocaleString(), icon: TrendingUp, color: 'secondary' },
+    { label: 'Mensajes Hoy', value: summary.messagesToday.toLocaleString(), icon: MessageSquare, color: 'primary' },
+    { label: 'Grupos Activos', value: summary.totalGroups.toLocaleString(), icon: Users2, color: 'secondary' },
+  ] : []
 
   const severityColor: Record<string, string> = {
     info: 'text-blue-500',
@@ -63,9 +69,6 @@ export default function AdminDashboardView() {
 
   return (
     <div className="p-6 space-y-6">
-      <p style={{color: 'red', fontSize: '20px'}}>VERSIÓN NUEVA</p>
-
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, idx) => {
           const Icon = stat.icon
@@ -85,7 +88,6 @@ export default function AdminDashboardView() {
         })}
       </div>
 
-      {/* Recent Activity */}
       <Card className="p-6 border border-border">
         <h3 className="font-semibold text-foreground mb-4">Actividad Reciente</h3>
         <div className="space-y-3">
