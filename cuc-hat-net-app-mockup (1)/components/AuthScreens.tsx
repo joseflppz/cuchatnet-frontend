@@ -4,45 +4,37 @@ import React, { useState } from "react"
 import { useApp } from '@/contexts/AppContext'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
+import { apiPost } from '@/lib/api-client'
+import { loadClientData, mapAuthUser } from '@/lib/api/bootstrap'
 
 export function LoginScreen() {
-
   const { setCurrentView, showToast } = useApp()
-  const [phone, setPhone] = useState('')
-  const [country, setCountry] = useState('+506')
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(e.target.value.replace(/\D/g, '').slice(0, 8))
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value.trim().toLowerCase())
   }
 
   const handleLogin = async () => {
-    if (!phone || phone.length < 8) {
-      showToast('Por favor ingresa un número válido', 'error')
+    if (!email || !email.includes('@')) {
+      showToast('Por favor ingresa un correo válido', 'error')
       return
     }
 
     try {
-      const fullPhone = `${country}${phone}`
+      setLoading(true)
 
-      const response = await fetch('/api/verify/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: fullPhone }),
-      })
+      await apiPost('/api/verify/send', { email })
 
-      const data = await response.json()
+      localStorage.setItem('verify_email', email)
 
-      if (!response.ok) {
-        showToast(data.error || 'Error enviando código', 'error')
-        return
-      }
-
-      localStorage.setItem('verify_phone', fullPhone)
-      showToast('Código enviado correctamente', 'success')
-      setCurrentView('verify-sms')
-
-    } catch (error) {
-      showToast('Error de conexión', 'error')
+      showToast('Código enviado correctamente al correo', 'success')
+      setTimeout(() => setCurrentView('verify-sms'), 300)
+    } catch (error: any) {
+      showToast(error.message || 'Error enviando código', 'error')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -69,37 +61,25 @@ export function LoginScreen() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">País/Extensión</label>
-              <select
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
+              <label className="block text-sm font-medium text-foreground mb-2">Correo electrónico</label>
+              <input
+                type="email"
+                value={email}
+                onChange={handleEmailChange}
+                placeholder="Ej: usuario@gmail.com"
                 className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-              >
-                <option value="+506">🇨🇷 Costa Rica (+506)</option>
-                <option value="+34">🇪🇸 España (+34)</option>
-                <option value="+55">🇧🇷 Brasil (+55)</option>
-                <option value="+52">🇲🇽 México (+52)</option>
-                <option value="+1">🇺🇸 USA (+1)</option>
-              </select>
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Se enviará un código de verificación a tu correo electrónico
+              </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Número de Teléfono</label>
-              <div className="flex gap-2">
-                <span className="flex items-center px-4 py-2 bg-muted text-muted-foreground border border-border rounded-lg">{country}</span>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  placeholder="Ej: 87654321"
-                  className="flex-1 border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Se enviará un código de verificación por SMS</p>
-            </div>
-
-            <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90 mt-6">
-              Enviar Código
+            <Button
+              onClick={handleLogin}
+              disabled={loading}
+              className="w-full bg-primary hover:bg-primary/90 mt-6"
+            >
+              {loading ? 'Enviando código...' : 'Enviar Código'}
             </Button>
 
             <p className="text-center text-xs text-muted-foreground mt-4">
@@ -113,9 +93,12 @@ export function LoginScreen() {
 }
 
 export function VerifySmsScreen() {
-  const { setCurrentView, showToast } = useApp()
+  const { setCurrentView, showToast, setCurrentUser, setChats, setGroups, setContacts, setStates } = useApp()
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
+
+  const email = localStorage.getItem('verify_email') || ''
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
@@ -129,29 +112,56 @@ export function VerifySmsScreen() {
 
     try {
       setLoading(true)
-      const phone = localStorage.getItem('verify_phone')
 
-      const response = await fetch('/api/verify/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, code }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        showToast(data.error || 'Código incorrecto', 'error')
-        setLoading(false)
+      const savedEmail = localStorage.getItem('verify_email')
+      if (!savedEmail) {
+        showToast('No se encontró el correo a verificar', 'error')
         return
       }
 
-      showToast('SMS verificado correctamente', 'success')
-      setLoading(false)
-      setCurrentView('profile-setup')
+      const data = await apiPost<any>('/api/verify/check', { email: savedEmail, code })
 
-    } catch (error) {
-      showToast('Error verificando código', 'error')
+      if (data?.userExists && data?.user) {
+        const mappedUser = mapAuthUser(data.user)
+        const clientData = await loadClientData(mappedUser.id)
+
+        setCurrentUser(mappedUser)
+        setChats(clientData.chats)
+        setGroups(clientData.groups)
+        setContacts(clientData.contacts)
+        setStates(clientData.states)
+
+        localStorage.setItem('cuchatnet_currentUser', JSON.stringify(mappedUser))
+        localStorage.setItem('cuchatnet_state', JSON.stringify(clientData))
+
+        showToast('Correo verificado correctamente', 'success')
+        setTimeout(() => setCurrentView('chat'), 300)
+        return
+      }
+
+      showToast('Código verificado correctamente', 'success')
+      setTimeout(() => setCurrentView('profile-setup'), 300)
+    } catch (error: any) {
+      showToast(error.message || 'Error verificando código', 'error')
+    } finally {
       setLoading(false)
+    }
+  }
+
+  const handleResend = async () => {
+    try {
+      if (!email) {
+        showToast('No se encontró el correo para reenviar el código', 'error')
+        return
+      }
+
+      setResending(true)
+      await apiPost('/api/verify/send', { email })
+      showToast('Código reenviado correctamente', 'success')
+    } catch (error: any) {
+      showToast(error.message || 'Error reenviando código', 'error')
+    } finally {
+      setResending(false)
     }
   }
 
@@ -169,10 +179,10 @@ export function VerifySmsScreen() {
         <div className="bg-white rounded-xl border border-border shadow-sm p-8">
           <div className="text-center mb-6">
             <div className="inline-block w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4">
-              <span className="text-2xl">📱</span>
+              <span className="text-2xl">📧</span>
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Verifica tu teléfono</h1>
-            <p className="text-muted-foreground">Hemos enviado un código de 6 dígitos a tu número</p>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Verifica tu correo</h1>
+            <p className="text-muted-foreground">Hemos enviado un código de 6 dígitos a tu correo</p>
           </div>
 
           {loading && (
@@ -198,12 +208,18 @@ export function VerifySmsScreen() {
               {loading ? 'Verificando...' : 'Verificar'}
             </Button>
 
-            <button className="w-full text-sm text-primary hover:text-primary/80 font-medium">Reenviar código (30s)</button>
+            <button
+              onClick={handleResend}
+              disabled={resending}
+              className="w-full text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-60"
+            >
+              {resending ? 'Reenviando...' : 'Reenviar código'}
+            </button>
           </div>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          💡 Se envió un codigo a tu númmero <span className="font-semibold">Introduce aqui</span> para verificar tu cuenta
+        <p className="text-center text-xs text-muted-foreground mt-6 break-all">
+          💡 Se envió un código al correo <span className="font-semibold">{email || 'Introduce aquí'}</span> para verificar tu cuenta
         </p>
       </div>
     </div>
@@ -213,73 +229,79 @@ export function VerifySmsScreen() {
 export function ProfileSetupScreen() {
   const { setCurrentView, setCurrentUser, showToast, setChats, setGroups, setContacts, setStates } = useApp()
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [description, setDescription] = useState('')
   const [photo, setPhoto] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(false)
 
+  const email = localStorage.getItem('verify_email') || ''
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhone(e.target.value.replace(/\D/g, '').slice(0, 8))
+  }
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
     const reader = new FileReader()
-    reader.onload = (event) => setPhoto(event.target?.result as string)
+    reader.onload = (event) => {
+      setPhoto(event.target?.result as string)
+    }
     reader.readAsDataURL(file)
   }
 
-  const handleRemovePhoto = () => setPhoto(undefined)
+  const handleRemovePhoto = () => {
+    setPhoto(undefined)
+  }
 
-  const handleSetup = () => {
+  const handleSetup = async () => {
     if (!name.trim()) {
       showToast('Por favor ingresa tu nombre', 'error')
       return
     }
 
-    setLoading(true)
+    if (!email) {
+      showToast('No se encontró el correo a configurar', 'error')
+      return
+    }
 
-    setTimeout(() => {
-      const user = {
-        id: 'user-' + Date.now(),
-        phone: '+506 8765 4321',
-        name,
-        photo,
-        description,
-        status: 'available' as const,
-        createdAt: new Date().toISOString(),
-        active: true,
-      }
+    if (!phone || phone.length < 8) {
+      showToast('Por favor ingresa un número de teléfono válido', 'error')
+      return
+    }
 
-      setCurrentUser(user)
+    try {
+      setLoading(true)
 
-      setChats([
-        { id: '1', participantId: 'p1', participantName: 'Ana García', participantPhoto: '👩', lastMessage: 'Perfecto, nos vemos luego', lastMessageTime: '14:32', unread: 0, pinned: false, archived: false, isGroup: false, silenced: false },
-        { id: '2', participantId: 'p2', participantName: 'Carlos López', participantPhoto: '👨', lastMessage: 'Enviado el documento', lastMessageTime: '12:15', unread: 2, pinned: true, archived: false, isGroup: false, silenced: false },
-        { id: '3', participantId: 'p3', participantName: 'María Rodríguez', participantPhoto: '👩', lastMessage: 'Gracias por la ayuda', lastMessageTime: 'ayer', unread: 0, pinned: false, archived: false, isGroup: false, silenced: false },
-        { id: '4', participantId: 'p4', participantName: 'Juan Martínez', participantPhoto: '👨', lastMessage: 'Mañana a las 10am?', lastMessageTime: 'ayer', unread: 0, pinned: false, archived: false, isGroup: false, silenced: false },
-        { id: '5', participantId: 'p5', participantName: 'Sofia Pérez', participantPhoto: '👩', lastMessage: 'Listo! 👍', lastMessageTime: 'lun', unread: 0, pinned: false, archived: false, isGroup: false, silenced: false },
-      ])
+      const user = await apiPost<any>('/api/auth/profile-setup', {
+        email,
+        name: name.trim(),
+        phone,
+        description: description || null,
+        photoUrl: photo || null,
+        status: 'available',
+      })
 
-      setGroups([
-        { id: 'g1', name: 'Equipo Proyecto', photo: '👥', description: 'Grupo de trabajo del proyecto final', rules: 'Respetar a todos', members: [{ id: 'user-1', name: 'Tú', role: 'admin' }, { id: 'p1', name: 'Ana', role: 'member' }, { id: 'p2', name: 'Carlos', role: 'member' }], createdAt: '2026-01-15', creatorId: 'user-1', permissions: { sendMessages: 'all', editInfo: 'admins' } },
-        { id: 'g2', name: 'Curso Ingeniería', photo: '📚', description: 'Grupo del curso de Ingeniería de Software', rules: 'Preguntas académicas', members: [{ id: 'user-1', name: 'Tú', role: 'member' }, { id: 'p3', name: 'María', role: 'admin' }], createdAt: '2026-01-20', creatorId: 'p3', permissions: { sendMessages: 'all', editInfo: 'admins' } },
-      ])
+      const mappedUser = mapAuthUser(user)
+      const clientData = await loadClientData(mappedUser.id)
 
-      setContacts([
-        { id: 'p1', name: 'Ana García', phone: '+506 8765 1234', photo: '👩', description: 'Compañera de clase', status: 'available', fromAgenda: true },
-        { id: 'p2', name: 'Carlos López', phone: '+506 8765 5678', photo: '👨', status: 'available', fromAgenda: true },
-        { id: 'p3', name: 'María Rodríguez', phone: '+506 8765 9012', photo: '👩', status: 'available', fromAgenda: true },
-        { id: 'p4', name: 'Juan Martínez', phone: '+506 8765 3456', photo: '👨', status: 'away', fromAgenda: false },
-        { id: 'p5', name: 'Sofia Pérez', phone: '+506 8765 7890', photo: '👩', status: 'available', fromAgenda: true },
-      ])
+      setCurrentUser(mappedUser)
+      setChats(clientData.chats)
+      setGroups(clientData.groups)
+      setContacts(clientData.contacts)
+      setStates(clientData.states)
 
-      setStates([
-        { id: 's1', userId: 'p1', userName: 'Ana García', userPhoto: '👩', content: 'Disfrutando del campus', type: 'text', createdAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 24*60*60*1000).toISOString(), viewedBy: ['user-1'] },
-        { id: 's2', userId: 'p2', userName: 'Carlos López', userPhoto: '👨', content: 'En la biblioteca', type: 'text', createdAt: new Date(Date.now() - 2*60*60*1000).toISOString(), expiresAt: new Date(Date.now() - 2*60*60*1000 + 24*60*60*1000).toISOString(), viewedBy: [] },
-      ])
+      localStorage.setItem('cuchatnet_currentUser', JSON.stringify(mappedUser))
+      localStorage.setItem('cuchatnet_state', JSON.stringify(clientData))
 
-      setLoading(false)
-      localStorage.setItem('cuchatnet_currentUser', JSON.stringify(user))
       showToast('Cuenta creada con éxito', 'success')
       setTimeout(() => setCurrentView('chat'), 500)
-    }, 1000)
+    } catch (error: any) {
+      showToast(error.message || 'No se pudo completar el perfil', 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -301,6 +323,16 @@ export function ProfileSetupScreen() {
 
           <div className="space-y-4">
             <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Correo</label>
+              <input
+                type="email"
+                value={email}
+                disabled
+                className="w-full border border-border rounded-lg px-4 py-2 bg-muted text-muted-foreground"
+              />
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-foreground mb-3">Foto de Perfil (opcional)</label>
               <div className="flex flex-col items-center gap-3">
                 <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-dashed border-border">
@@ -312,13 +344,21 @@ export function ProfileSetupScreen() {
                 </div>
                 <div className="flex gap-2 w-full">
                   <label className="flex-1">
-                    <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                    />
                     <div className="bg-muted hover:bg-muted/80 text-muted-foreground text-sm py-2 px-3 rounded-lg text-center cursor-pointer transition">
                       Seleccionar imagen
                     </div>
                   </label>
                   {photo && (
-                    <button onClick={handleRemovePhoto} className="bg-secondary/10 hover:bg-secondary/20 text-secondary text-sm py-2 px-3 rounded-lg transition">
+                    <button
+                      onClick={handleRemovePhoto}
+                      className="bg-secondary/10 hover:bg-secondary/20 text-secondary text-sm py-2 px-3 rounded-lg transition"
+                    >
                       Quitar
                     </button>
                   )}
@@ -336,6 +376,19 @@ export function ProfileSetupScreen() {
                 maxLength={50}
                 className="w-full border border-border rounded-lg px-4 py-2 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Número de teléfono *</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={handlePhoneChange}
+                placeholder="Ej: 61184904"
+                maxLength={8}
+                className="w-full border border-border rounded-lg px-4 py-2 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Se guardará como parte de tu perfil</p>
             </div>
 
             <div>
@@ -371,7 +424,6 @@ export function AdminLoginScreen() {
   const { setCurrentView, setIsAdmin, showToast } = useApp()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -380,33 +432,12 @@ export function AdminLoginScreen() {
     }
 
     try {
-      setLoading(true)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7086'
-
-      const res = await fetch(`${API_URL}/api/admin/auth/token-dev`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuarioId: 1 }),
-      })
-
-      if (!res.ok) {
-        showToast('Credenciales incorrectas', 'error')
-        setLoading(false)
-        return
-      }
-
-      const data = await res.json()
-      localStorage.setItem('admin_token', data.token)
-      localStorage.setItem('admin_nombre', data.nombre)
-
+      await apiPost('/api/auth/admin-login', { email: username, password })
       setIsAdmin(true)
       showToast('Sesión administrativa iniciada', 'success')
       setTimeout(() => setCurrentView('admin-dashboard'), 500)
-
-    } catch {
-      showToast('Error de conexión con el servidor', 'error')
-    } finally {
-      setLoading(false)
+    } catch (error: any) {
+      showToast(error.message || 'Credenciales incorrectas', 'error')
     }
   }
 
@@ -433,12 +464,12 @@ export function AdminLoginScreen() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Usuario</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Correo</label>
               <input
-                type="text"
+                type="email"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="nombre de usuario"
+                placeholder="admin@correo.com"
                 className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -450,13 +481,12 @@ export function AdminLoginScreen() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 className="w-full border border-border rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
 
-            <Button onClick={handleLogin} disabled={loading} className="w-full bg-primary hover:bg-primary/90">
-              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90">
+              Iniciar Sesión
             </Button>
           </div>
         </div>

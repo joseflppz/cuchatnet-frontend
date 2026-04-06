@@ -4,6 +4,7 @@ import { useApp } from '@/contexts/AppContext'
 import { Lock, Bell, Binary as Privacy, FileText, LogOut, User, Shield } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { apiPost } from '@/lib/api-client'
 
 type StatusType = 'available' | 'busy' | 'away'
 type Section = 'profile' | 'security' | 'privacy' | 'notifications' | 'about'
@@ -68,24 +69,37 @@ export default function SettingsScreen() {
     reader.readAsDataURL(file)
   }
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!currentUser) {
       showToast('No hay usuario activo', 'error')
       return
     }
 
-    const updatedUser = {
-      ...currentUser,
-      description: description.slice(0, 100),
-      status,
-      photo: photo || undefined,
-    }
+    try {
+      const updated = await apiPost<any>('/api/auth/profile-setup', {
+        phone: currentUser.phone,
+        name: currentUser.name,
+        description: description.slice(0, 100),
+        photoUrl: photo || null,
+        status,
+      })
 
-    setCurrentUser(updatedUser)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('cuchatnet_currentUser', JSON.stringify(updatedUser))
+      const updatedUser = {
+        ...currentUser,
+        name: updated.name || currentUser.name,
+        description: updated.description || undefined,
+        status: (updated.status || status) as any,
+        photo: updated.photo || undefined,
+      }
+
+      setCurrentUser(updatedUser)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cuchatnet_currentUser', JSON.stringify(updatedUser))
+      }
+      showToast('Perfil actualizado correctamente', 'success')
+    } catch (error: any) {
+      showToast(error.message || 'No se pudo actualizar el perfil', 'error')
     }
-    showToast('Perfil actualizado correctamente', 'success')
   }
 
   const displayInitial = (currentUser?.name?.charAt(0) || 'U').toUpperCase()
@@ -218,6 +232,9 @@ export default function SettingsScreen() {
 
                     <Button
                       onClick={() => {
+                        localStorage.removeItem('cuchatnet_currentUser')
+                        localStorage.removeItem('cuchatnet_state')
+                        setCurrentUser(null)
                         setCurrentView('landing')
                         showToast('Sesión cerrada', 'info')
                       }}

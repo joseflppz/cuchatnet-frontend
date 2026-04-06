@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Mail;
+using System.Security.Cryptography;
 using CUChatNet.Api.Data;
 using CUChatNet.Api.Dtos;
 using CUChatNet.Api.Helpers;
@@ -25,50 +28,64 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var defaultCountry = _configuration["Verification:DefaultCountryCode"] ?? "+506";
-            var codeLength = int.TryParse(_configuration["Verification:CodeLength"], out var len) ? len : 6;
-            var minutes = int.TryParse(_configuration["Verification:MinutesToExpire"], out var mins) ? mins : 10;
-            var exposeCode = bool.TryParse(_configuration["Verification:ExposeCodeInResponse"], out var expose) && expose;
+            if (request is null || string.IsNullOrWhiteSpace(request.Email))
+                return BadRequest(new { error = "El correo es requerido." });
 
-            var (countryCode, number, fullPhone) = PhoneHelper.Parse(request.Phone, defaultCountry);
-            var code = PhoneHelper.GenerateVerificationCode(codeLength);
+            var email = NormalizeEmail(request.Email);
 
-            var existingUser = await _db.Usuarios.FirstOrDefaultAsync(x =>
-                x.ExtensionPais == countryCode && x.NumeroTelefono == number && !x.Eliminado);
+            var existingUser = await _db.Usuarios
+                .FirstOrDefaultAsync(x =>
+                    x.Email != null &&
+                    x.Email.ToLower() == email &&
+                    !x.Eliminado);
 
-            var verification = new VerificacionSms
+            var activeCodes = await _db.CodigosVerificacion
+                .Where(x =>
+                    x.Email.ToLower() == email &&
+                    !x.Usado &&
+                    x.Tipo == "VERIFY")
+                .ToListAsync();
+
+            foreach (var item in activeCodes)
+                item.Usado = true;
+
+            var code = GenerateVerificationCode();
+
+            var codigoVerificacion = new CodigoVerificacion
             {
-                UsuarioId = existingUser?.UsuarioId,
-                ExtensionPais = countryCode,
-                NumeroTelefono = number,
+                Email = email,
                 Codigo = code,
-                ProveedorSms = "Twilio",
-                Estado = "pendiente",
-                Intentos = 0,
                 FechaCreacion = DateTime.UtcNow,
-                FechaExpiracion = DateTime.UtcNow.AddMinutes(minutes)
+                FechaExpiracion = DateTime.UtcNow.AddMinutes(5),
+                Usado = false,
+                Intentos = 0,
+                Tipo = "VERIFY"
             };
 
-            _db.VerificacionesSms.Add(verification);
-            _db.BitacoraEventos.Add(new BitacoraEvento
-            {
-                Categoria = "system",
-                UsuarioId = existingUser?.UsuarioId,
-                Accion = "Código SMS generado",
-                Detalles = $"Teléfono: {fullPhone}",
-                Severidad = "info",
-                DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
-                FechaEvento = DateTime.UtcNow
-            });
-
+            _db.CodigosVerificacion.Add(codigoVerificacion);
             await _db.SaveChangesAsync();
+
+            await SendEmailAsync(
+                email,
+                "Código de verificación - CUChatNet",
+                $@"
+                <div style='font-family: Arial, sans-serif; line-height: 1.6;'>
+                    <h2>Código de verificación</h2>
+                    <p>Tu código de acceso es:</p>
+                    <div style='font-size: 28px; font-weight: bold; letter-spacing: 4px; margin: 16px 0;'>
+                        {code}
+                    </div>
+                    <p>Este código vence en 5 minutos.</p>
+                    <p>Si no solicitaste este código, puedes ignorar este correo.</p>
+                </div>"
+            );
 
             return Ok(new VerifyResponse(
                 true,
-                "Código generado correctamente.",
+                "Código enviado correctamente al correo.",
                 existingUser is not null,
                 null,
-                exposeCode ? code : null
+                null
             ));
         }
         catch (Exception ex)
@@ -82,79 +99,111 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var defaultCountry = _configuration["Verification:DefaultCountryCode"] ?? "+506";
-            var (countryCode, number, fullPhone) = PhoneHelper.Parse(request.Phone, defaultCountry);
+            if (request is null ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Code))
+            {
+                return BadRequest(new { error = "Correo y código son requeridos." });
+            }
 
-            var verification = await _db.VerificacionesSms
-                .Where(x => x.ExtensionPais == countryCode
-                         && x.NumeroTelefono == number
-                         && x.Estado == "pendiente")
+            var email = NormalizeEmail(request.Email);
+            var code = request.Code.Trim();
+
+            var codigoGuardado = await _db.CodigosVerificacion
+                .Where(x =>
+                    x.Email.ToLower() == email &&
+                    !x.Usado &&
+                    x.Tipo == "VERIFY")
                 .OrderByDescending(x => x.FechaCreacion)
                 .FirstOrDefaultAsync();
 
-            if (verification is null)
-                return BadRequest(new { error = "No existe un código pendiente para ese teléfono." });
+            if (codigoGuardado is null)
+                return BadRequest(new { error = "No hay un código activo para este correo." });
 
-            if (verification.FechaExpiracion < DateTime.UtcNow)
+            if (codigoGuardado.FechaExpiracion < DateTime.UtcNow)
             {
-                verification.Estado = "expirado";
+                codigoGuardado.Usado = true;
                 await _db.SaveChangesAsync();
-                return BadRequest(new { error = "El código ya expiró." });
+                return BadRequest(new { error = "El código ha expirado." });
             }
 
-            verification.Intentos += 1;
-
-            if (verification.Codigo != request.Code)
+            if (!string.Equals(codigoGuardado.Codigo, code, StringComparison.OrdinalIgnoreCase))
             {
+                codigoGuardado.Intentos += 1;
                 await _db.SaveChangesAsync();
-                return BadRequest(new { error = "Código incorrecto." });
+                return BadRequest(new { error = "Código inválido." });
             }
 
-            verification.Estado = "verificado";
-            verification.FechaVerificacion = DateTime.UtcNow;
+            codigoGuardado.Usado = true;
+            await _db.SaveChangesAsync();
 
-            var user = await _db.Usuarios.FirstOrDefaultAsync(x =>
-                x.ExtensionPais == countryCode && x.NumeroTelefono == number && !x.Eliminado);
+            var user = await _db.Usuarios
+                .Include(u => u.CuentaAcceso)
+                .Include(u => u.UsuarioRoles)
+                    .ThenInclude(ur => ur.Rol)
+                .FirstOrDefaultAsync(x =>
+                    x.Email != null &&
+                    x.Email.ToLower() == email &&
+                    !x.Eliminado);
 
-            if (user is not null)
+            if (user is null)
             {
-                user.Verificado = true;
-                user.FechaUltimoAcceso = DateTime.UtcNow;
+                return Ok(new VerifyResponse(
+                    true,
+                    "Código verificado correctamente. Usuario pendiente de completar perfil.",
+                    false,
+                    null,
+                    null
+                ));
+            }
+
+            user.Verificado = true;
+            user.Activo = true;
+            user.FechaUltimoAcceso = DateTime.UtcNow;
+
+            if (user.CuentaAcceso is not null)
+            {
+                user.CuentaAcceso.UltimoLogin = DateTime.UtcNow;
+                user.CuentaAcceso.EstadoCuenta = "active";
+                user.CuentaAcceso.Activo = true;
             }
 
             _db.BitacoraEventos.Add(new BitacoraEvento
             {
                 Categoria = "security",
-                UsuarioId = user?.UsuarioId,
-                Accion = "Teléfono verificado",
-                Detalles = $"Teléfono: {fullPhone}",
+                UsuarioId = user.UsuarioId,
+                Accion = "Correo verificado",
+                Detalles = $"Correo: {email}",
                 Severidad = "info",
                 DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
-                FechaEvento = DateTime.UtcNow
+                FechaEvento = DateTime.UtcNow,
             });
 
             await _db.SaveChangesAsync();
 
-            AuthUserDto? userDto = null;
-            if (user is not null)
-            {
-                userDto = new AuthUserDto(
-                    user.UsuarioId,
-                    $"{user.ExtensionPais}{user.NumeroTelefono}",
-                    user.Nombre,
-                    user.FotoUrl,
-                    user.Descripcion,
-                    user.EstadoPerfil,
-                    user.FechaCreacion,
-                    user.Activo
-                );
-            }
+            var roleCode = user.UsuarioRoles
+                .Select(x => x.Rol.Codigo)
+                .FirstOrDefault() ?? "USER";
+
+            var userDto = new AuthUserDto(
+                user.UsuarioId,
+                user.TelefonoCompleto ?? email,
+                user.Email,
+                user.Nombre,
+                user.FotoUrl,
+                user.Descripcion,
+                user.EstadoPerfil,
+                roleCode,
+                user.FechaCreacion,
+                user.Activo
+            );
 
             return Ok(new VerifyResponse(
                 true,
                 "Código verificado correctamente.",
-                user is not null,
-                userDto
+                true,
+                userDto,
+                null
             ));
         }
         catch (Exception ex)
@@ -168,21 +217,36 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var defaultCountry = _configuration["Verification:DefaultCountryCode"] ?? "+506";
-            var (countryCode, number, _) = PhoneHelper.Parse(request.Phone, defaultCountry);
+            if (request is null ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Name))
+            {
+                return BadRequest(new { error = "Correo y nombre son requeridos." });
+            }
 
-            var verified = await _db.VerificacionesSms
-                .Where(x => x.ExtensionPais == countryCode
-                         && x.NumeroTelefono == number
-                         && x.Estado == "verificado")
-                .OrderByDescending(x => x.FechaVerificacion)
-                .FirstOrDefaultAsync();
+            var email = NormalizeEmail(request.Email);
 
-            if (verified is null)
-                return BadRequest(new { error = "Primero debes verificar el teléfono." });
+            string? countryCode = null;
+            string? number = null;
+            string? fullPhone = null;
 
-            var user = await _db.Usuarios.FirstOrDefaultAsync(x =>
-                x.ExtensionPais == countryCode && x.NumeroTelefono == number && !x.Eliminado);
+            if (!string.IsNullOrWhiteSpace(request.Phone))
+            {
+                var defaultCountry = _configuration["Verification:DefaultCountryCode"] ?? "+506";
+                var parsed = PhoneHelper.Parse(request.Phone, defaultCountry);
+                countryCode = parsed.CountryCode;
+                number = parsed.Number;
+                fullPhone = parsed.FullPhone;
+            }
+
+            var user = await _db.Usuarios
+                .Include(u => u.CuentaAcceso)
+                .Include(u => u.UsuarioRoles)
+                    .ThenInclude(ur => ur.Rol)
+                .FirstOrDefaultAsync(x =>
+                    x.Email != null &&
+                    x.Email.ToLower() == email &&
+                    !x.Eliminado);
 
             if (user is null)
             {
@@ -190,6 +254,7 @@ public class AuthController : ControllerBase
                 {
                     ExtensionPais = countryCode,
                     NumeroTelefono = number,
+                    Email = email,
                     Nombre = request.Name.Trim(),
                     FotoUrl = request.PhotoUrl,
                     Descripcion = request.Description,
@@ -205,62 +270,108 @@ public class AuthController : ControllerBase
                 await _db.SaveChangesAsync();
 
                 var userRoleId = await _db.Roles
-                    .Where(x => x.Codigo == "USER")
+                    .Where(x => x.Codigo == "USER" && x.Activo)
                     .Select(x => x.RolId)
                     .FirstOrDefaultAsync();
 
-                if (userRoleId > 0)
+                if (userRoleId <= 0)
+                    return StatusCode(500, new { error = "No existe el rol USER." });
+
+                _db.UsuarioRoles.Add(new UsuarioRol
                 {
-                    _db.UsuarioRoles.Add(new UsuarioRol
-                    {
-                        UsuarioId = user.UsuarioId,
-                        RolId = userRoleId,
-                        FechaAsignacion = DateTime.UtcNow
-                    });
-                }
+                    UsuarioId = user.UsuarioId,
+                    RolId = userRoleId,
+                    FechaAsignacion = DateTime.UtcNow,
+                });
 
                 _db.CuentasAcceso.Add(new CuentaAcceso
                 {
                     UsuarioId = user.UsuarioId,
-                    NombreUsuario = $"{countryCode}{number}",
+                    NombreUsuario = email,
                     EstadoCuenta = "active",
                     UsaOtp = true,
                     DebeCambiarContrasena = false,
                     IntentosFallidos = 0,
-                    Activo = true
+                    Activo = true,
+                    UltimoLogin = DateTime.UtcNow,
                 });
             }
             else
             {
+                user.Email = email;
                 user.Nombre = request.Name.Trim();
                 user.FotoUrl = request.PhotoUrl;
                 user.Descripcion = request.Description;
-                user.EstadoPerfil = string.IsNullOrWhiteSpace(request.Status) ? user.EstadoPerfil : request.Status;
+                user.EstadoPerfil = string.IsNullOrWhiteSpace(request.Status)
+                    ? user.EstadoPerfil
+                    : request.Status;
+
+                if (!string.IsNullOrWhiteSpace(request.Phone))
+                {
+                    user.ExtensionPais = countryCode;
+                    user.NumeroTelefono = number;
+                }
+
                 user.Verificado = true;
                 user.Activo = true;
                 user.FechaUltimoAcceso = DateTime.UtcNow;
+
+                if (user.CuentaAcceso is not null)
+                {
+                    user.CuentaAcceso.UltimoLogin = DateTime.UtcNow;
+                    user.CuentaAcceso.EstadoCuenta = "active";
+                    user.CuentaAcceso.Activo = true;
+                    user.CuentaAcceso.NombreUsuario = email;
+                }
+                else
+                {
+                    _db.CuentasAcceso.Add(new CuentaAcceso
+                    {
+                        UsuarioId = user.UsuarioId,
+                        NombreUsuario = email,
+                        EstadoCuenta = "active",
+                        UsaOtp = true,
+                        DebeCambiarContrasena = false,
+                        IntentosFallidos = 0,
+                        Activo = true,
+                        UltimoLogin = DateTime.UtcNow,
+                    });
+                }
             }
+
+            await _db.SaveChangesAsync();
 
             _db.BitacoraEventos.Add(new BitacoraEvento
             {
                 Categoria = "system",
                 UsuarioId = user.UsuarioId,
                 Accion = "Perfil configurado",
-                Detalles = $"Usuario: {request.Name}",
+                Detalles = $"Usuario: {request.Name} - Correo: {email}",
                 Severidad = "info",
                 DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
-                FechaEvento = DateTime.UtcNow
+                FechaEvento = DateTime.UtcNow,
             });
 
             await _db.SaveChangesAsync();
 
+            user = await _db.Usuarios
+                .Include(u => u.UsuarioRoles)
+                    .ThenInclude(ur => ur.Rol)
+                .FirstAsync(x => x.UsuarioId == user.UsuarioId);
+
+            var roleCode = user.UsuarioRoles
+                .Select(x => x.Rol.Codigo)
+                .FirstOrDefault() ?? "USER";
+
             var response = new AuthUserDto(
                 user.UsuarioId,
-                $"{user.ExtensionPais}{user.NumeroTelefono}",
+                user.TelefonoCompleto ?? email,
+                user.Email,
                 user.Nombre,
                 user.FotoUrl,
                 user.Descripcion,
                 user.EstadoPerfil,
+                roleCode,
                 user.FechaCreacion,
                 user.Activo
             );
@@ -271,5 +382,112 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    [HttpPost("auth/admin-login")]
+    public async Task<IActionResult> AdminLogin([FromBody] AdminLoginRequest request)
+    {
+        try
+        {
+            if (request is null ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest(new { error = "Correo y contraseña son requeridos." });
+            }
+
+            var email = NormalizeEmail(request.Email);
+
+            var user = await _db.Usuarios
+                .Include(u => u.CuentaAcceso)
+                .Include(u => u.UsuarioRoles)
+                    .ThenInclude(ur => ur.Rol)
+                .FirstOrDefaultAsync(x =>
+                    x.Email != null &&
+                    x.Email.ToLower() == email &&
+                    !x.Eliminado &&
+                    x.Activo);
+
+            if (user is null)
+                return Unauthorized(new { error = "Credenciales inválidas." });
+
+            var isAdmin = user.UsuarioRoles.Any(x => x.Rol.Codigo == "ADMIN" && x.Rol.Activo);
+            if (!isAdmin)
+                return Forbid();
+
+            if (user.CuentaAcceso is null || string.IsNullOrWhiteSpace(user.CuentaAcceso.HashContrasena))
+                return Unauthorized(new { error = "El administrador no tiene contraseña configurada." });
+
+            var passwordOk = BCrypt.Net.BCrypt.Verify(request.Password, user.CuentaAcceso.HashContrasena);
+            if (!passwordOk)
+                return Unauthorized(new { error = "Credenciales inválidas." });
+
+            user.FechaUltimoAcceso = DateTime.UtcNow;
+            user.CuentaAcceso.UltimoLogin = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            var userDto = new AuthUserDto(
+                user.UsuarioId,
+                user.TelefonoCompleto ?? email,
+                user.Email,
+                user.Nombre,
+                user.FotoUrl,
+                user.Descripcion,
+                user.EstadoPerfil,
+                "ADMIN",
+                user.FechaCreacion,
+                user.Activo
+            );
+
+            return Ok(new VerifyResponse(true, "Login admin correcto.", true, userDto, null));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private static string NormalizeEmail(string email)
+    {
+        return email.Trim().ToLowerInvariant();
+    }
+
+    private static string GenerateVerificationCode()
+    {
+        return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+    }
+
+    private async Task SendEmailAsync(string toEmail, string subject, string bodyHtml)
+    {
+        var host = _configuration["Smtp:Host"] ?? "smtp.gmail.com";
+        var port = int.TryParse(_configuration["Smtp:Port"], out var parsedPort) ? parsedPort : 587;
+        var user = _configuration["Smtp:User"];
+        var pass = _configuration["Smtp:Pass"];
+        var from = _configuration["Smtp:From"] ?? user;
+        var fromName = _configuration["Smtp:FromName"] ?? "CUChatNet";
+
+        if (string.IsNullOrWhiteSpace(user) ||
+            string.IsNullOrWhiteSpace(pass) ||
+            string.IsNullOrWhiteSpace(from))
+        {
+            throw new Exception("Faltan credenciales SMTP.");
+        }
+
+        using var message = new MailMessage();
+        message.From = new MailAddress(from, fromName);
+        message.To.Add(toEmail);
+        message.Subject = subject;
+        message.Body = bodyHtml;
+        message.IsBodyHtml = true;
+
+        using var smtp = new SmtpClient(host, port)
+        {
+            Credentials = new NetworkCredential(user, pass),
+            EnableSsl = true,
+            UseDefaultCredentials = false
+        };
+
+        await smtp.SendMailAsync(message);
     }
 }
