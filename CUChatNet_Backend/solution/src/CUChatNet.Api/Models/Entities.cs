@@ -58,23 +58,7 @@ public class UsuarioRol
     public Rol Rol { get; set; } = null!;
 }
 
-public class DispositivoUsuario
-{
-    public long DispositivoId { get; set; }
-    public long UsuarioId { get; set; }
-    public string NombreDispositivo { get; set; } = "";
-    public string? Plataforma { get; set; }
-    public string? SistemaOperativo { get; set; }
-    public string? Navegador { get; set; }
-    public string HuellaDispositivo { get; set; } = "";
-    public string? CodigoSeguridad { get; set; }
-    public string? UltimaIp { get; set; }
-    public bool Verificado { get; set; }
-    public bool Confiable { get; set; }
-    public bool Activo { get; set; }
-    public DateTime FechaRegistro { get; set; }
-    public DateTime? FechaUltimoUso { get; set; }
-}
+
 
 public class ClaveDispositivo
 {
@@ -117,23 +101,7 @@ public class ContactoUsuario
     public Usuario Contacto { get; set; } = null!;
 }
 
-public class Chat
-{
-    public long ChatId { get; set; }
-    public string CodigoConversacion { get; set; } = "";
-    public string TipoChat { get; set; } = "";
-    public string? Nombre { get; set; }
-    public string? FotoUrl { get; set; }
-    public string? Descripcion { get; set; }
-    public string? Reglas { get; set; }
-    public string? PermisoEnviarMensajes { get; set; }
-    public string? PermisoEditarInfo { get; set; }
-    public long? CreadoPorUsuarioId { get; set; }
-    public DateTime FechaCreacion { get; set; }
-    public bool Activo { get; set; }
-    public ICollection<ChatParticipante> Participantes { get; set; } = new List<ChatParticipante>();
-    public ICollection<Mensaje> Mensajes { get; set; } = new List<Mensaje>();
-}
+
 
 public class ChatParticipante
 {
@@ -233,36 +201,8 @@ public class EstadoVisualizacion
     public Usuario Usuario { get; set; } = null!;
 }
 
-public class ContactoSilenciadoEstado
-{
-    public long ContactoSilenciadoId { get; set; }
-    public long UsuarioId { get; set; }
-    public long ContactoUsuarioId { get; set; }
-    public DateTime FechaSilenciado { get; set; }
-    public bool Activo { get; set; }
-}
 
-public class ConfiguracionSistema
-{
-    public int ConfiguracionId { get; set; }
-    public string NombreAplicacion { get; set; } = "CUChatNet";
-    public int MaxGrupo { get; set; }
-    public int TimeoutMensajesMinutos { get; set; }
-    public int MaxArchivoMB { get; set; }
-    public string? ServidorSmtp { get; set; }
-    public int? PuertoSmtp { get; set; }
-    public string? UsuarioSmtp { get; set; }
-    public byte[]? ClaveSmtpEncriptada { get; set; }
-    public string? ProveedorSms { get; set; }
-    public byte[]? ApiKeySmsEncriptada { get; set; }
-    public string? ApiEndpoint { get; set; }
-    public byte[]? ApiTokenEncriptado { get; set; }
-    public bool ModoMantenimiento { get; set; }
-    public bool E2ERequerido { get; set; }
-    public int AutoArchivarInactividadDias { get; set; }
-    public DateTime FechaActualizacion { get; set; }
-    public bool Activo { get; set; }
-}
+
 
 public class PoliticaSeguridad
 {
@@ -279,15 +219,4 @@ public class PoliticaSeguridad
     public bool Activa { get; set; }
 }
 
-public class BitacoraEvento
-{
-    public long EventoId { get; set; }
-    public string Categoria { get; set; } = "system";
-    public long? UsuarioId { get; set; }
-    public long? DispositivoId { get; set; }
-    public string Accion { get; set; } = "";
-    public string? Detalles { get; set; }
-    public string Severidad { get; set; } = "info";
-    public string? DireccionIp { get; set; }
-    public DateTime FechaEvento { get; set; }
-}
+

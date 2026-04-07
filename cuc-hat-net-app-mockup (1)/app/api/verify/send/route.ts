@@ -1,35 +1,23 @@
-import { NextResponse } from "next/server"
-import twilio from "twilio"
-
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID!,
-  process.env.TWILIO_AUTH_TOKEN!
-)
-
+// app/api/verify/send/route.ts
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 export async function POST(req: Request) {
   try {
-    const { phone } = await req.json()
+    const body = await req.json();
 
-    if (!phone) {
-      return NextResponse.json(
-        { error: "Número requerido" },
-        { status: 400 }
-      )
-    }
+    const response = await fetch("https://localhost:7086/api/verify/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
 
-    await client.verify.v2
-      .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
-      .verifications.create({
-        to: phone,
-        channel: "sms",
-      })
+    const data = await response.json();
 
-    return NextResponse.json({ success: true })
+    return Response.json(data, { status: response.status });
+
   } catch (error) {
-    console.error(error)
-    return NextResponse.json(
-      { error: "Error enviando código" },
-      { status: 500 }
-    )
+    console.error(error);
+    return Response.json({ error: "Error interno" }, { status: 500 });
   }
 }

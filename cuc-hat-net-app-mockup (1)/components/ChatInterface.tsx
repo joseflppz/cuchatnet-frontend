@@ -16,11 +16,10 @@ import { CreateStateModal } from '@/components/modals/CreateStateModal'
 type ClientTab = 'chats' | 'groups' | 'contacts' | 'states' | 'settings'
 
 export function ChatInterface() {
-  const { currentUser, clientTab, setClientTab, setCurrentView, contacts, showToast } = useApp()
+  // 1. Extraemos 'logout' del useApp()
+  const { currentUser, clientTab, setClientTab, logout, contacts, showToast } = useApp()
 
-  // En móvil empieza cerrado, en desktop siempre visible por clases lg:
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
   const [showGroupModal, setShowGroupModal] = useState(false)
   const [showStateModal, setShowStateModal] = useState(false)
 
@@ -37,12 +36,13 @@ export function ChatInterface() {
 
   const selectTab = (tab: ClientTab) => {
     setClientTab(tab as any)
-    setSidebarOpen(false) // cerrar drawer en móvil
+    setSidebarOpen(false) 
   }
 
-  const logout = () => {
-    setCurrentView('landing')
-    showToast('Sesión cerrada', 'info')
+  // 2. Reemplazamos la función local por la versión que usa el logout del context
+  const handleLogout = () => {
+    logout() // Esta función limpia localStorage y estados globales
+    showToast('Sesión cerrada correctamente', 'info')
   }
 
   return (
@@ -57,12 +57,10 @@ export function ChatInterface() {
       {/* Sidebar / Drawer */}
       <aside
         className={[
-          // mobile drawer
           'fixed inset-y-0 left-0 z-50 w-[85vw] max-w-[320px]',
           'bg-primary text-primary-foreground flex flex-col',
           'transform transition-transform duration-300',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-          // desktop
           'lg:static lg:translate-x-0 lg:z-auto lg:w-80',
         ].join(' ')}
       >
@@ -80,7 +78,7 @@ export function ChatInterface() {
           </div>
 
           <div className="flex items-center gap-3 bg-primary/20 rounded-lg p-3">
-            <div className="w-10 h-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-bold overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-bold overflow-hidden border border-primary/10">
               {currentUser?.photo ? (
                 <img src={currentUser.photo} alt={currentUser.name} className="w-full h-full object-cover" />
               ) : (
@@ -89,7 +87,7 @@ export function ChatInterface() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">{currentUser?.name}</p>
-              <p className="text-xs opacity-80 capitalize truncate">{currentUser?.status}</p>
+              <p className="text-xs opacity-80 capitalize truncate">{currentUser?.status || 'Disponible'}</p>
             </div>
           </div>
         </div>
@@ -97,37 +95,18 @@ export function ChatInterface() {
         {/* Tabs */}
         <nav className="flex-1 overflow-y-auto">
           <div className="grid grid-cols-4 border-b border-primary/30">
-            <button
-              onClick={() => selectTab('chats')}
-              className={`px-2 py-3 text-xs sm:text-sm font-medium transition-colors ${clientTab === 'chats' ? 'bg-primary/30 border-b-2 border-secondary' : 'hover:bg-primary/20'
-                }`}
-            >
-              Chats
-            </button>
-            <button
-              onClick={() => selectTab('groups')}
-              className={`px-2 py-3 text-xs sm:text-sm font-medium transition-colors ${clientTab === 'groups' ? 'bg-primary/30 border-b-2 border-secondary' : 'hover:bg-primary/20'
-                }`}
-            >
-              Grupos
-            </button>
-            <button
-              onClick={() => selectTab('contacts')}
-              className={`px-2 py-3 text-xs sm:text-sm font-medium transition-colors ${clientTab === 'contacts' ? 'bg-primary/30 border-b-2 border-secondary' : 'hover:bg-primary/20'
-                }`}
-            >
-              Contactos
-            </button>
-            <button
-              onClick={() => selectTab('states')}
-              className={`px-2 py-3 text-xs sm:text-sm font-medium transition-colors ${clientTab === 'states' ? 'bg-primary/30 border-b-2 border-secondary' : 'hover:bg-primary/20'
-                }`}
-            >
-              Estados
-            </button>
+            {['chats', 'groups', 'contacts', 'states'].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => selectTab(tab as ClientTab)}
+                className={`px-2 py-3 text-xs sm:text-sm font-medium transition-colors capitalize ${clientTab === tab ? 'bg-primary/30 border-b-2 border-secondary' : 'hover:bg-primary/20'
+                  }`}
+              >
+                {tab === 'states' ? 'Estados' : tab}
+              </button>
+            ))}
           </div>
 
-          {/* Panel listado */}
           <div className="p-4">
             {clientTab === 'chats' && <ChatList />}
             {clientTab === 'groups' && <GroupsList />}
@@ -147,8 +126,9 @@ export function ChatInterface() {
             Ajustes
           </Button>
 
+          {/* 3. Botón de Cerrar Sesión actualizado */}
           <Button
-            onClick={logout}
+            onClick={handleLogout}
             variant="ghost"
             className="w-full justify-start text-secondary hover:bg-secondary/20"
           >
@@ -158,9 +138,8 @@ export function ChatInterface() {
         </div>
       </aside>
 
-      {/* Main */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
         <div className="bg-card border-b border-border h-16 flex items-center px-4 justify-between gap-3">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -173,20 +152,9 @@ export function ChatInterface() {
           <h2 className="text-lg font-semibold text-foreground truncate">{tabTitle}</h2>
 
           <div className="flex items-center gap-2">
-            {clientTab === 'groups' && (
+            {(clientTab === 'groups' || clientTab === 'states') && (
               <Button
-                onClick={() => setShowGroupModal(true)}
-                size="sm"
-                className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                <Plus className="w-4 h-4" />
-                Crear
-              </Button>
-            )}
-
-            {clientTab === 'states' && (
-              <Button
-                onClick={() => setShowStateModal(true)}
+                onClick={() => clientTab === 'groups' ? setShowGroupModal(true) : setShowStateModal(true)}
                 size="sm"
                 className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
               >
@@ -197,7 +165,6 @@ export function ChatInterface() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-hidden">
           {clientTab === 'settings' ? <SettingsScreen /> : <ChatWindow />}
         </div>

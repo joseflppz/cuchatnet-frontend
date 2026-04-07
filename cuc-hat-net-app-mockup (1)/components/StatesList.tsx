@@ -1,13 +1,14 @@
 'use client'
 
 import { useApp, State } from '@/contexts/AppContext'
-import { Plus, Trash2, Eye, MoreVertical, Volume2 } from 'lucide-react'
-import { useState } from 'react'
+import { Plus, Trash2, Eye, MoreVertical, Volume2, Video } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { CreateStateModal } from '@/components/modals/CreateStateModal'
 import { ConfirmModal } from '@/components/modals/ConfirmModal'
 import { StateViewersModal } from '@/components/modals/StateViewersModal'
 import { ViewStateModal } from '@/components/modals/ViewStateModal'
+import { getStatesFeed, viewState, deleteState } from '@/lib/api'
 
 type StateFilter = 'all' | 'muted'
 
@@ -17,29 +18,65 @@ export default function StatesList() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [selectedState, setSelectedState] = useState<State | null>(null)
   const [showViewersModal, setShowViewersModal] = useState(false)
-
   const [showViewModal, setShowViewModal] = useState(false)
   const [viewingState, setViewingState] = useState<State | null>(null)
-
   const [filter, setFilter] = useState<StateFilter>('all')
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [stateToDelete, setStateToDelete] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const userStates = states.filter((s) => s.userId === currentUser?.id)
-  const allOtherStates = states.filter((s) => s.userId !== currentUser?.id)
+  // Normalización de ID del usuario actual para comparaciones
+  const currentUserId = currentUser?.id?.toString().trim();
+
+  // --- CARGA DE DATOS ---
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const fetchFeed = async () => {
+      try {
+        const data = await getStatesFeed(currentUserId);
+        const mappedStates = data.map((s: any) => ({
+          id: s.id.toString(),
+          userId: s.userId.toString().trim(), // Normalizamos el ID del dueño del estado
+          userName: s.userName,
+          userPhoto: s.userPhoto || s.userName.charAt(0).toUpperCase(),
+          content: s.content,
+          type: s.type, 
+          createdAt: s.createdAt,
+          viewedBy: s.viewedBy || []
+        }));
+        setStates(mappedStates);
+      } catch (error) {
+        console.error("Error al cargar estados:", error);
+      }
+    };
+
+    fetchFeed();
+    const interval = setInterval(fetchFeed, 60000);
+    return () => clearInterval(interval);
+  }, [currentUserId, setStates]);
+
+  // Filtros con comparación robusta
+  const userStates = states.filter((s) => s.userId === currentUserId)
+  const allOtherStates = states.filter((s) => s.userId !== currentUserId)
 
   const otherStates =
     filter === 'muted'
       ? allOtherStates.filter((s) => mutedContacts.includes(s.userId))
       : allOtherStates.filter((s) => !mutedContacts.includes(s.userId))
 
-  const handleDeleteState = () => {
+  const handleDeleteState = async () => {
     if (stateToDelete) {
-      setStates(states.filter((s) => s.id !== stateToDelete))
-      showToast('Estado eliminado', 'success')
-      setStateToDelete(null)
-      setShowDeleteConfirm(false)
+      try {
+        await deleteState(stateToDelete);
+        setStates(states.filter((s) => s.id !== stateToDelete))
+        showToast('Estado eliminado', 'success')
+      } catch (error) {
+        showToast('Error al eliminar en servidor', 'error')
+      } finally {
+        setStateToDelete(null)
+        setShowDeleteConfirm(false)
+      }
     }
   }
 
@@ -54,23 +91,25 @@ export default function StatesList() {
     setMenuOpen(null)
   }
 
-  // Abre estado (tuyo u otro). Si es de otro, marca "visto" (demo).
-  const openState = (state: State) => {
-    let nextState = state
-
-    if (currentUser?.id && state.userId !== currentUser.id && !state.viewedBy.includes(currentUser.id)) {
-      nextState = { ...state, viewedBy: [...state.viewedBy, currentUser.id] }
-      setStates((prev) => prev.map((s) => (s.id === state.id ? (nextState as any) : s)))
-    }
-
-    setViewingState(nextState)
+  const openState = async (state: State) => {
+    setViewingState(state)
     setShowViewModal(true)
     setMenuOpen(null)
+
+    if (currentUserId && state.userId !== currentUserId && !state.viewedBy.includes(currentUserId)) {
+      try {
+        await viewState(state.id, currentUserId);
+        setStates((prev) => prev.map((s) => 
+          s.id === state.id ? { ...s, viewedBy: [...s.viewedBy, currentUserId] } : s
+        ))
+      } catch (error) {
+        console.error("No se pudo registrar la visualización");
+      }
+    }
   }
 
   return (
     <div className="space-y-4 rounded-2xl bg-gradient-to-b from-[#0A2E6D]/90 via-[#061a3d]/95 to-[#031028]/95 p-3 md:p-4 shadow-lg ring-1 ring-white/10">
-      {/* Create State Button */}
       <Button
         onClick={() => setShowCreateModal(true)}
         className="w-full gap-2 bg-[#E21B23] hover:bg-[#E21B23]/90 text-white shadow-md shadow-[#E21B23]/20 rounded-xl transition-all duration-200"
@@ -79,7 +118,6 @@ export default function StatesList() {
         Crear estado
       </Button>
 
-      {/* Filter tabs */}
       <div className="flex gap-2">
         <button
           onClick={() => setFilter('all')}
@@ -101,7 +139,6 @@ export default function StatesList() {
         </button>
       </div>
 
-      {/* Your States */}
       {userStates.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-white/60 uppercase mb-2 tracking-wider">Tus estados</p>
@@ -116,29 +153,34 @@ export default function StatesList() {
                   <div className="flex-1 min-w-0">
                     {state.type === 'text' ? (
                       <p className="text-sm text-white break-words font-semibold">{state.content}</p>
-                    ) : typeof state.content === 'string' && state.content.startsWith('data:image') ? (
-                      <img src={state.content} alt="state" className="h-16 w-full object-cover rounded-xl mt-2 ring-1 ring-white/10" />
-                    ) : (
-                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-white/10 via-[#0A2E6D]/40 to-[#E21B23]/20 flex items-center justify-center text-2xl shadow-md ring-1 ring-white/10 mt-1">
-                        🖼️
+                    ) : state.type === 'video' ? (
+                      <div className="relative h-16 w-full mt-2 rounded-xl overflow-hidden ring-1 ring-white/10 bg-black flex items-center justify-center">
+                        <video src={state.content} className="h-full w-full object-cover opacity-60" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="bg-white/20 p-1 rounded-full backdrop-blur-sm">
+                            <Video className="w-4 h-4 text-white" />
+                          </div>
+                        </div>
                       </div>
+                    ) : (
+                      <img src={state.content} alt="state" className="h-16 w-full object-cover rounded-xl mt-2 ring-1 ring-white/10" />
                     )}
 
                     <div className="flex items-center gap-3 mt-2 text-xs text-white/70">
                       <span>👁️ {state.viewedBy.length} visualizaciones</span>
-                      <span>⏱️ Expira en 23h</span>
+                      <span>⏱️ Expira en 24h</span>
                     </div>
                   </div>
 
+                  {/* BOTONES DE ACCIÓN PARA TUS ESTADOS */}
                   <div className="flex gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    {/* SOLO tus estados -> ver vistas */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         setSelectedState(state)
                         setShowViewersModal(true)
                       }}
-                      className="p-1.5 hover:bg-white/10 rounded-lg text-white/90 hover:text-white transition-all duration-200 shadow-sm"
+                      className="p-1.5 hover:bg-white/10 rounded-lg text-white/90 hover:text-white transition-all duration-200"
                     >
                       <Eye className="w-3 h-3" />
                     </button>
@@ -148,9 +190,8 @@ export default function StatesList() {
                         e.stopPropagation()
                         setStateToDelete(state.id)
                         setShowDeleteConfirm(true)
-                        setMenuOpen(null)
                       }}
-                      className="p-1.5 hover:bg-[#E21B23]/15 rounded-lg text-[#E21B23] transition-all duration-200 shadow-sm"
+                      className="p-1.5 hover:bg-[#E21B23]/15 rounded-lg text-[#E21B23] transition-all duration-200"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -162,7 +203,6 @@ export default function StatesList() {
         </div>
       )}
 
-      {/* Other States */}
       {otherStates.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-white/60 uppercase mb-2 tracking-wider">
@@ -184,14 +224,16 @@ export default function StatesList() {
                     <p className="text-sm font-semibold text-white">{state.userName}</p>
                     {state.type === 'text' ? (
                       <p className="text-xs text-white/80 line-clamp-2">{state.content}</p>
-                    ) : typeof state.content === 'string' && state.content.startsWith('data:image') ? (
-                      <img src={state.content} alt="state" className="h-12 w-full object-cover rounded-xl mt-2 ring-1 ring-white/10" />
+                    ) : state.type === 'video' ? (
+                      <div className="relative h-12 w-full mt-2 rounded-xl overflow-hidden ring-1 ring-white/10 bg-black flex items-center justify-center">
+                        <video src={state.content} className="h-full w-full object-cover opacity-50" />
+                        <Video className="absolute w-4 h-4 text-white/80" />
+                      </div>
                     ) : (
-                      <p className="text-xs text-white/70">📷 Imagen</p>
+                      <img src={state.content} alt="state" className="h-12 w-full object-cover rounded-xl mt-2 ring-1 ring-white/10" />
                     )}
                   </div>
 
-                  {/* Menu button */}
                   <div className="relative opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={(e) => {
@@ -204,17 +246,33 @@ export default function StatesList() {
                     </button>
 
                     {menuOpen === state.id && (
-                      <div className="absolute right-0 top-full mt-2 bg-[#061a3d]/95 backdrop-blur-xl rounded-xl shadow-lg shadow-black/30 border border-white/10 z-10 min-w-max overflow-hidden">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleMuteContact(state.userId)
-                          }}
-                          className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white/90 hover:bg-white/10 transition-all duration-200"
-                        >
-                          <Volume2 className="w-4 h-4" />
-                          {mutedContacts.includes(state.userId) ? 'Reactivar' : 'Silenciar'}
-                        </button>
+                      <div className="absolute right-0 top-full mt-2 bg-[#061a3d]/95 backdrop-blur-xl rounded-xl shadow-lg border border-white/10 z-50 min-w-[160px] overflow-hidden">
+                        {/* Verificación de dueño de estado robusta */}
+                        {state.userId.toString().trim() === currentUserId ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setStateToDelete(state.id);
+                              setShowDeleteConfirm(true);
+                              setMenuOpen(null);
+                            }}
+                            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-[#E21B23] hover:bg-white/10 transition-all duration-200"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Eliminar estado
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleMuteContact(state.userId);
+                            }}
+                            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-white/90 hover:bg-white/10 transition-all duration-200"
+                          >
+                            <Volume2 className="w-4 h-4" />
+                            {mutedContacts.includes(state.userId) ? 'Reactivar' : 'Silenciar'}
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -225,38 +283,19 @@ export default function StatesList() {
         </div>
       )}
 
-      {/* No States */}
-      {states.length === 0 && (
-        <div className="text-center py-10 rounded-2xl bg-white/5 shadow-md ring-1 ring-white/10">
-          <div className="text-4xl mb-3">👁️</div>
-          <p className="font-semibold text-white mb-1">No hay estados</p>
-          <p className="text-sm text-white/70">Comparte un estado para que tus contactos te vean</p>
-        </div>
-      )}
-
-      {/* Viewers Modal (solo para tus estados, desde el botón 👁️) */}
+      {/* MODALES */}
       <StateViewersModal
         isOpen={showViewersModal}
-        onClose={() => {
-          setShowViewersModal(false)
-          setSelectedState(null)
-        }}
+        onClose={() => { setShowViewersModal(false); setSelectedState(null); }}
         state={selectedState}
         contacts={contacts}
       />
-
-      {/* View State Modal (para ver estado) */}
       <ViewStateModal
         isOpen={showViewModal}
-        onClose={() => {
-          setShowViewModal(false)
-          setViewingState(null)
-        }}
+        onClose={() => { setShowViewModal(false); setViewingState(null); }}
         state={viewingState}
       />
-
       <CreateStateModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
-
       <ConfirmModal
         isOpen={showDeleteConfirm}
         title="Eliminar estado"
@@ -265,10 +304,7 @@ export default function StatesList() {
         cancelText="Cancelar"
         isDangerous={true}
         onConfirm={handleDeleteState}
-        onCancel={() => {
-          setShowDeleteConfirm(false)
-          setStateToDelete(null)
-        }}
+        onCancel={() => { setShowDeleteConfirm(false); setStateToDelete(null); }}
       />
     </div>
   )
