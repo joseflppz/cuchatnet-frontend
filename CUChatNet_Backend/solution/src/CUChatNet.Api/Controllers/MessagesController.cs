@@ -1,8 +1,10 @@
 using CUChatNet.Api.Data;
 using CUChatNet.Api.Dtos;
 using CUChatNet.Api.Models;
+ // Importante para el Hub
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR; // Importante para SignalR
 
 namespace CUChatNet.Api.Controllers;
 
@@ -11,10 +13,12 @@ namespace CUChatNet.Api.Controllers;
 public class MessagesController : ControllerBase
 {
     private readonly CUChatNetDbContext _db;
+    private readonly IHubContext<ChatHub> _hubContext; // 🔥 Inyección del Hub
 
-    public MessagesController(CUChatNetDbContext db)
+    public MessagesController(CUChatNetDbContext db, IHubContext<ChatHub> hubContext)
     {
         _db = db;
+        _hubContext = hubContext;
     }
 
     [HttpGet("chats/{chatId:long}/messages")]
@@ -68,6 +72,7 @@ public class MessagesController : ControllerBase
         if (sender is null)
             return BadRequest(new { error = "Remitente no válido." });
 
+        // 1. Crear el objeto del mensaje
         var message = new Mensaje
         {
             ChatId = chatId,
@@ -83,8 +88,9 @@ public class MessagesController : ControllerBase
         };
 
         _db.Mensajes.Add(message);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(); // Guardamos para obtener el ID
 
+        // 2. Manejo de adjuntos
         if (!string.IsNullOrWhiteSpace(request.MediaUrl) && request.Type != "text")
         {
             _db.MensajeAdjuntos.Add(new MensajeAdjunto
@@ -98,8 +104,10 @@ public class MessagesController : ControllerBase
                 DuracionSegundos = request.DurationSeconds,
                 FechaCreacion = DateTime.UtcNow
             });
+            await _db.SaveChangesAsync();
         }
 
+        // 3. Crear estados para los receptores
         var receivers = chat.Participantes
             .Where(p => p.Activo && p.UsuarioId != request.SenderId)
             .ToList();
@@ -116,6 +124,7 @@ public class MessagesController : ControllerBase
             });
         }
 
+        // 4. Bitácora
         _db.BitacoraEventos.Add(new BitacoraEvento
         {
             Categoria = "message",
@@ -129,7 +138,8 @@ public class MessagesController : ControllerBase
 
         await _db.SaveChangesAsync();
 
-        return Ok(new
+        // 5. 🔥 ESTRUCTURA PARA EL TIEMPO REAL (SIGNALR)
+        var messageData = new
         {
             id = message.MensajeId,
             chatId = message.ChatId,
@@ -144,7 +154,12 @@ public class MessagesController : ControllerBase
             deletedForAll = message.EliminadoParaTodos,
             type = message.TipoMensaje,
             mediaUrl = request.MediaUrl
-        });
+        };
+
+        // 🔥 NOTIFICAR A SIGNALR: Enviamos el mensaje al grupo del ChatId
+        await _hubContext.Clients.Group(chatId.ToString()).SendAsync("ReceiveMessage", messageData);
+
+        return Ok(messageData);
     }
 
     [HttpPatch("messages/{messageId:long}/status")]
@@ -167,5 +182,34 @@ public class MessagesController : ControllerBase
         await _db.SaveChangesAsync();
 
         return Ok(new { success = true });
+    }
+    // Añade este método a tu MessagesController.cs
+
+    [HttpPatch("chats/{chatId:long}/read")]
+    public async Task<IActionResult> MarkChatAsRead(long chatId, [FromQuery] long userId)
+    {
+        // Buscamos todos los estados de mensajes en este chat que pertenecen al usuario 
+        // y que aún no han sido leídos ('seen')
+        var unreadStates = await _db.MensajeEstados
+            .Include(e => e.Mensaje)
+            .Where(e => e.Mensaje.ChatId == chatId &&
+                        e.UsuarioId == userId &&
+                        e.Estado != "seen")
+            .ToListAsync();
+
+        if (!unreadStates.Any()) return Ok(new { message = "Sin mensajes pendientes" });
+
+        foreach (var state in unreadStates)
+        {
+            state.Estado = "seen";
+            state.FechaVista = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
+
+        // 🔥 Notificamos por SignalR a los demás en el chat que sus mensajes fueron leídos
+        await _hubContext.Clients.Group(chatId.ToString()).SendAsync("ChatReadByPeer", userId);
+
+        return Ok(new { success = true, count = unreadStates.Count });
     }
 }

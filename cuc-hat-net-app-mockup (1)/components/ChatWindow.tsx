@@ -3,92 +3,124 @@
 import { useApp } from '@/contexts/AppContext'
 import * as signalR from "@microsoft/signalr"
 import { 
-  Send, FileText, MoreVertical, Loader2, Paperclip, Mic, X, Check, CheckCheck 
+  Send, FileText, MoreVertical, Loader2, Paperclip, Mic, X, CheckCheck, Check, AlertCircle 
 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { getMessages, sendMessage, uploadFile } from "@/lib/api" 
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { getMessages, sendMessage, uploadFile, markChatAsRead } from "@/lib/api" 
 
 export default function ChatWindow() {
-  const { currentChatId, chats, currentUser } = useApp()
+  const { currentChatId, chats, currentUser, groups } = useApp()
   const [messageText, setMessageText] = useState('')
   const [chatMessages, setChatMessages] = useState<any[]>([])
   const [inlineError, setInlineError] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isRecording, setIsRecording] = useState(false) 
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [isPartnerOnline, setIsPartnerOnline] = useState(false)
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   const connectionRef = useRef<signalR.HubConnection | null>(null)
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
 
-  // BÚSQUEDA DEL CHAT: Aseguramos que la comparación sea estricta como texto
-  const currentChat = chats.find(c => String(c.id) === String(currentChatId))
+  const API_BASE_URL = "https://localhost:7086";
 
-  // --- 1. SIGNALR ---
+  // Buscar si es un chat directo o un grupo en ambos arrays
+  const currentChat = chats.find(c => String(c.id) === String(currentChatId)) || 
+                     groups.find(g => String(g.id) === String(currentChatId));
+
+  // --- 1. CARGA DE HISTORIAL ---
+  const loadData = useCallback(async () => {
+    if (!currentChatId || currentChatId === '0' || !currentUser?.id) return;
+    
+    try {
+      setLoadingHistory(true);
+      setInlineError(null);
+      const data = await getMessages(currentChatId, currentUser.id);
+      setChatMessages(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error("Error al cargar mensajes:", err);
+      setInlineError("Error al cargar historial");
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [currentChatId, currentUser?.id]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // --- 2. SIGNALR: TIEMPO REAL ---
   useEffect(() => {
     if (!currentChatId || !currentUser || currentChatId === '0') return;
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("https://localhost:7086/hubs/chat") 
-      .withAutomaticReconnect([0, 2000, 5000, 10000])
-      .configureLogging(signalR.LogLevel.Warning)
+      .withUrl(`${API_BASE_URL}/chathub?userId=${currentUser.id}`)
+      .withAutomaticReconnect()
       .build();
 
     const startConnection = async () => {
-      if (connection.state === signalR.HubConnectionState.Disconnected) {
-        try {
-          await connection.start();
-          await connection.invoke("JoinChat", String(currentChatId));
-        } catch (err) {
-          console.error("Error conectando SignalR:", err);
-          if (connection.state === signalR.HubConnectionState.Disconnected) {
-            setTimeout(startConnection, 5000);
-          }
-        }
+      try {
+        await connection.start();
+        await connection.invoke("JoinChat", String(currentChatId));
+        await markChatAsRead(currentChatId, currentUser.id);
+      } catch (err) {
+        setTimeout(startConnection, 5000);
       }
     };
 
     startConnection();
 
-    connection.on("ReceiveMessage", (msg) => {
-      setChatMessages(prev => {
-        const msgId = msg.id || msg.mensajeId;
-        if (prev.some(m => (m.id || m.mensajeId) === msgId)) return prev;
-        return [...prev, msg];
-      });
+    connection.on("ReceiveMessage", async (msg) => {
+      if (String(msg.chatId || msg.chatId) === String(currentChatId)) {
+        setChatMessages(prev => {
+          const newId = msg.id || msg.mensajeId;
+          if (prev.some(m => (m.id || m.mensajeId) === newId)) return prev;
+          return [...prev, msg];
+        });
+
+        if (String(msg.senderId || msg.remitenteUsuarioId) !== String(currentUser.id)) {
+          await markChatAsRead(currentChatId, currentUser.id);
+        }
+      }
     });
 
-    connection.on("MessageRead", (messageId) => {
-        setChatMessages(prev => prev.map(m => 
-            (m.id === messageId || m.mensajeId === messageId) ? { ...m, isRead: true, leido: true } : m
-        ));
+    connection.on("ChatReadByPeer", (peerId) => {
+      if (String(peerId) !== String(currentUser.id)) {
+        setChatMessages(prev => prev.map(m => ({ ...m, status: 'seen', estado: 'seen' })));
+      }
+    });
+
+    connection.on("UserStatusChanged", (userId, isOnline) => {
+      if (currentChat && String(userId) === String((currentChat as any).participantId)) {
+        setIsPartnerOnline(isOnline);
+      }
     });
 
     connectionRef.current = connection;
-
-    return () => {
-      if (connection) connection.stop();
-    };
+    return () => { connection.stop(); };
   }, [currentChatId, currentUser]);
-
-  // --- 2. CARGA DE HISTORIAL ---
-  useEffect(() => {
-    if (!currentChatId || currentChatId === '0') return;
-    
-    // LIMPIAR mensajes anteriores mientras carga los nuevos
-    setChatMessages([]); 
-    
-    getMessages(currentChatId).then(data => {
-        setChatMessages(Array.isArray(data) ? data : []);
-    }).catch(err => console.error("Error al obtener mensajes:", err));
-  }, [currentChatId]);
 
   useEffect(() => { 
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) 
   }, [chatMessages]);
 
-  // --- 3. ENVÍO DE MENSAJES ---
+  const getFileUrl = (url: string) => {
+    if (!url) return "";
+    return url.startsWith("http") ? url : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
+
+  const renderStatus = (m: any) => {
+    const isMe = String(m.senderId || m.remitenteUsuarioId) === String(currentUser?.id);
+    if (!isMe) return null;
+    const s = (m.status || m.estado || 'sent').toLowerCase();
+    if (s === 'seen') return <CheckCheck size={14} className="text-blue-500" />;
+    if (s === 'received') return <CheckCheck size={14} className="text-gray-400" />;
+    return <Check size={14} className="text-gray-400" />;
+  };
+
+  // --- 3. ACCIONES: ENVIAR, ARCHIVOS, AUDIO ---
   const handleSendMessage = async (content?: string, type: string = "text") => {
     if (!currentUser || !currentChatId) return;
     const finalContent = typeof content === 'string' ? content : messageText.trim();
@@ -97,33 +129,14 @@ export default function ChatWindow() {
     if (type === "text") setMessageText('');
 
     try {
-      const newMessage = await sendMessage(currentChatId, {
+      await sendMessage(currentChatId, {
         senderId: Number(currentUser.id),
         content: finalContent,
         type: type
       });
-
-      if (newMessage) {
-        setChatMessages(prev => {
-          const msgId = newMessage.id || newMessage.mensajeId;
-          if (prev.some(m => (m.id || m.mensajeId) === msgId)) return prev;
-          return [...prev, newMessage];
-        });
-      }
-      setInlineError(null);
-    } catch (error) {
-      setInlineError("Error al enviar");
+    } catch (error: any) { 
+      setInlineError("Error al enviar: " + (error.response?.data?.error || "Servidor offline")); 
     }
-  };
-
-  const renderStatus = (m: any) => {
-    const isRead = m.isRead || m.leido || m.estado === 'visto';
-    const isDelivered = true; 
-    return (
-      <div className="flex items-center ml-1">
-        {isRead ? <CheckCheck size={15} className="text-blue-500" /> : isDelivered ? <CheckCheck size={15} className="text-gray-400" /> : <Check size={15} className="text-gray-400" />}
-      </div>
-    );
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,10 +146,12 @@ export default function ChatWindow() {
     try {
       const response = await uploadFile(currentChatId, file); 
       const fileUrl = response?.url || response?.fileUrl;
-      if (!fileUrl) throw new Error("No URL");
-      let type = file.type.startsWith("image/") ? "image" : file.type.startsWith("video/") ? "video" : file.type.startsWith("audio/") ? "audio" : "file";
-      await handleSendMessage(fileUrl, type);
-    } catch (error) { setInlineError("Error al subir"); }
+      let type = "file";
+      if (file.type.startsWith("image/")) type = "image";
+      else if (file.type.startsWith("video/")) type = "video";
+      else if (file.type.startsWith("audio/")) type = "audio";
+      if (fileUrl) await handleSendMessage(fileUrl, type);
+    } catch (error) { setInlineError("Error al subir archivo"); }
     finally { setIsUploading(false); if (e.target) e.target.value = ''; }
   };
 
@@ -144,114 +159,98 @@ export default function ChatWindow() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
-      const chunks: Blob[] = [];
+      mediaRecorderRef.current = recorder;
+      const chunks: BlobPart[] = [];
       recorder.ondataavailable = (e) => chunks.push(e.data);
       recorder.onstop = async () => {
-        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-        const audioFile = new File([audioBlob], "voice_note.webm", { type: 'audio/webm' });
+        const blob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
+        const file = new File([blob], "voice_memo.ogg", { type: 'audio/ogg' });
         setIsUploading(true);
-        try {
-          const res = await uploadFile(currentChatId!, audioFile);
-          const url = res?.url || res?.fileUrl;
-          if (url) await handleSendMessage(url, "audio");
-        } catch (err) { setInlineError("Error nota voz"); }
+        const res = await uploadFile(currentChatId!, file);
+        if (res?.url || res?.fileUrl) await handleSendMessage(res.url || res.fileUrl, "audio");
         setIsUploading(false);
       };
       recorder.start();
-      mediaRecorderRef.current = recorder;
       setIsRecording(true);
-    } catch (err) { setInlineError("Micrófono bloqueado"); }
+    } catch (err) { console.error("Error microfono:", err); }
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
     }
   };
 
-  // --- PANTALLA DE DIAGNÓSTICO ---
   if (!currentChat || !currentUser) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center bg-[#efeae2] text-gray-600 font-medium p-6 text-center">
-        <div className="bg-white p-6 rounded-lg shadow-md max-w-md w-full">
-          <h3 className="text-xl font-bold text-gray-800 mb-2">Pantalla de inicio</h3>
-          <p className="mb-4">Selecciona un chat o contacto para comenzar.</p>
-          
-          {/* Zona de diagnóstico: Se muestra solo si hay un ID seleccionado pero no encuentra el chat */}
-          {currentChatId && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded text-sm text-left">
-              <p className="font-bold text-red-600 mb-2">⚠️ Diagnóstico de Error:</p>
-              <p>El sistema intentó abrir el Chat ID: <span className="font-mono bg-gray-200 px-1">{currentChatId}</span></p>
-              <p className="mt-2">Pero en tu lista global de chats solo tienes estos IDs:</p>
-              <ul className="list-disc pl-5 mt-1 font-mono text-xs">
-                {chats.length > 0 ? chats.map(c => <li key={c.id}>{c.id} ({c.participantName})</li>) : <li>La lista de chats está vacía (0 chats).</li>}
-              </ul>
-              <p className="mt-3 text-xs text-gray-500">
-                Solución: Si la lista está vacía, tu base de datos no está devolviendo los chats. Si el ID no coincide, el botón donde hiciste clic está enviando el ID incorrecto.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
+    return <div className="h-full flex items-center justify-center bg-[#efeae2] text-gray-500">Selecciona un chat o grupo</div>;
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#efeae2] relative">
-      {/* ... (Todo tu código del return principal se mantiene igual) ... */}
+    <div className="h-full flex flex-col bg-[#efeae2] relative overflow-hidden">
       {selectedImage && (
-        <div className="absolute inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
-          <button className="absolute top-5 right-5 text-white hover:bg-white/10 p-2 rounded-full transition-colors"><X size={32} /></button>
-          <img src={selectedImage} className="max-w-full max-h-full object-contain shadow-2xl" alt="Full" />
+        <div className="absolute inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
+          <img src={getFileUrl(selectedImage)} className="max-w-full max-h-full rounded shadow-2xl" alt="Preview" />
+        </div>
+      )}
+
+      {inlineError && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[100] bg-red-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-xl flex items-center gap-2 animate-bounce">
+          <AlertCircle size={14} /> {inlineError}
+          <button onClick={() => setInlineError(null)} className="ml-2 hover:text-black">×</button>
         </div>
       )}
 
       {/* HEADER */}
-      <div className="p-3 bg-[#f0f2f5] flex items-center justify-between border-b border-gray-300">
+      <div className="p-3 bg-[#f0f2f5] flex items-center justify-between border-b border-gray-300 shadow-sm z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center text-primary overflow-hidden border border-gray-300">
-            {currentChat.participantPhoto ? <img src={currentChat.participantPhoto} className="w-full h-full object-cover" alt="p" /> : '👤'}
+          <div className="w-10 h-10 bg-gradient-to-br from-[#E21B23] to-[#0A2E6D] rounded-full overflow-hidden flex items-center justify-center border border-gray-300 shadow-sm">
+            {(currentChat as any).participantPhoto || (currentChat as any).photo ? (
+              <img src={getFileUrl((currentChat as any).participantPhoto || (currentChat as any).photo)} className="w-full h-full object-cover" alt="" />
+            ) : (
+              <span className="text-white font-bold">{(currentChat as any).participantName?.charAt(0) || (currentChat as any).name?.charAt(0)}</span>
+            )}
           </div>
           <div>
-            <h2 className="font-semibold text-gray-800 leading-tight">{currentChat.participantName}</h2>
-            <p className="text-[11px] text-green-600 font-medium">En línea</p>
+            <h2 className="font-bold text-gray-800 text-sm">{(currentChat as any).participantName || (currentChat as any).name}</h2>
+            <p className={`text-[10px] ${isPartnerOnline ? 'text-green-600 font-bold' : 'text-gray-500'}`}>
+              {currentChat.isGroup ? 'Grupo activo' : (isPartnerOnline ? '● en línea' : 'desconectado')}
+            </p>
           </div>
         </div>
-        <MoreVertical className="text-gray-500 cursor-pointer hover:bg-gray-200 rounded-full p-1" />
+        <MoreVertical className="text-gray-500 cursor-pointer" size={20} />
       </div>
 
       {/* MENSAJES */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] bg-repeat">
+        {loadingHistory && <div className="flex justify-center"><Loader2 className="animate-spin text-[#E21B23]" /></div>}
+        
         {chatMessages.map((m: any) => {
           const isMe = String(m.senderId || m.remitenteUsuarioId) === String(currentUser.id);
-          const msgType = (m.type || m.tipoMensaje || "text").toLowerCase();
+          const type = (m.type || m.tipoMensaje || "text").toLowerCase();
           const content = m.content || m.contenido;
+          const url = getFileUrl(content);
 
           return (
-            <div key={m.id || m.mensajeId} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in fade-in duration-300`}>
-              <div className={`relative p-2 px-3 rounded-xl shadow-sm max-w-[85%] sm:max-w-[70%] ${isMe ? 'bg-[#dcf8c6] rounded-tr-none' : 'bg-white rounded-tl-none'}`}>
-                {msgType === 'text' && <p className="text-[14px] text-gray-800 pb-4">{content}</p>}
-                {msgType === 'image' && (
-                  <div className="pb-4">
-                    <img src={content} onClick={() => setSelectedImage(content)} className="rounded-lg max-h-72 w-full object-cover cursor-pointer hover:opacity-95 transition-opacity" alt="img" />
-                  </div>
+            <div key={m.id || m.mensajeId || Math.random()} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-1 duration-300`}>
+              <div className={`p-2 rounded-lg shadow-sm max-w-[80%] relative ${isMe ? 'bg-[#dcf8c6] rounded-tr-none' : 'bg-white rounded-tl-none'}`}>
+                {!isMe && currentChat.isGroup && (
+                  <p className="text-[10px] font-bold text-[#0A2E6D] mb-1">{m.senderName || 'Usuario'}</p>
                 )}
-                {msgType === 'video' && <video src={content} controls className="rounded-lg max-h-64 pb-4" />}
-                {msgType === 'audio' && <audio src={content} controls className="w-full h-10 pb-4" />}
-                {msgType === 'file' && (
-                  <a href={content} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-black/5 p-3 rounded-lg mb-4 text-blue-700 text-sm font-medium">
-                    <FileText size={24} className="text-gray-500" /> 
-                    <span className="truncate">Documento adjunto</span>
+                {type === 'text' && <p className="text-[13.5px] text-gray-800 pr-4 break-words">{content}</p>}
+                {type === 'image' && <img src={url} onClick={() => setSelectedImage(content)} className="rounded-md max-h-64 object-cover cursor-pointer" alt="" />}
+                {type === 'video' && <video src={url} controls className="rounded-md max-h-64 w-full" />}
+                {type === 'audio' && <audio src={url} controls className="w-52 h-10 mt-1" />}
+                {type === 'file' && (
+                  <a href={url} target="_blank" className="flex items-center gap-3 p-2 bg-black/5 rounded-md text-blue-700 text-xs font-semibold">
+                    <FileText size={20} /> <span className="truncate max-w-[120px]">Archivo</span>
                   </a>
                 )}
-                
-                <div className="absolute bottom-1 right-2 flex items-center gap-1">
-                  <span className="text-[10px] text-gray-500">
+                <div className="flex justify-end items-center gap-1 mt-1 opacity-70">
+                  <span className="text-[9px] text-gray-500">
                     {new Date(m.timestamp || m.fechaEnvio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
-                  {isMe && renderStatus(m)}
+                  {renderStatus(m)}
                 </div>
               </div>
             </div>
@@ -260,30 +259,29 @@ export default function ChatWindow() {
         <div ref={bottomRef} />
       </div>
 
-      {/* FOOTER */}
-      <div className="p-2 bg-[#f0f2f5] flex items-center gap-2 border-t border-gray-300 relative">
+      {/* INPUT */}
+      <div className="p-2 bg-[#f0f2f5] flex items-center gap-2 border-t border-gray-300">
         <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
-        <button onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-600 hover:bg-gray-200 rounded-full transition-colors">
-          {isUploading ? <Loader2 className="animate-spin text-primary" size={22} /> : <Paperclip size={22} />}
+        <button onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-600 hover:bg-gray-200 rounded-full">
+          {isUploading ? <Loader2 className="animate-spin text-[#E21B23]" size={22} /> : <Paperclip size={22} className="rotate-45" />}
         </button>
         <input
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-          placeholder={isRecording ? "Grabando nota de voz..." : "Escribe un mensaje"}
-          className="flex-1 p-2.5 px-4 rounded-full outline-none bg-white text-sm shadow-sm border border-transparent focus:border-gray-300 transition-all"
+          placeholder={isRecording ? "Grabando audio..." : "Escribe un mensaje"}
+          className="flex-1 p-2.5 px-4 rounded-full outline-none text-sm bg-white"
         />
         {!messageText.trim() ? (
-          <button onMouseDown={startRecording} onMouseUp={stopRecording} className={`p-2 rounded-full transition-all ${isRecording ? 'bg-red-500 text-white scale-110 animate-pulse' : 'text-gray-600 hover:bg-gray-200'}`}>
+          <button onMouseDown={startRecording} onMouseUp={stopRecording} className={`p-2 rounded-full ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'text-gray-600'}`}>
             <Mic size={22} />
           </button>
         ) : (
-          <button onClick={() => handleSendMessage()} className="p-2 rounded-full bg-[#00a884] text-white hover:bg-[#008f6f] shadow-md transition-all active:scale-95">
+          <button onClick={() => handleSendMessage()} className="p-2 bg-[#00a884] text-white rounded-full">
             <Send size={22} />
           </button>
         )}
       </div>
-      {inlineError && <div className="absolute top-16 left-1/2 -translate-x-1/2 bg-red-500 text-white px-4 py-1 rounded-full text-xs shadow-lg">{inlineError}</div>}
     </div>
   )
 }

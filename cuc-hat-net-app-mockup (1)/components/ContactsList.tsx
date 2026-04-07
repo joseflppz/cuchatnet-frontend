@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { CreateGroupModal } from '@/components/modals/CreateGroupModal'
 import { ViewContactModal } from '@/components/modals/ViewContactModal'
-import { addContact } from '@/lib/api' // Asegúrate de importar la función
+import { addContact } from '@/lib/api'
 
 export default function ContactsList() {
   const { contacts, setContacts, createDirectChat, showToast } = useApp()
@@ -17,38 +17,40 @@ export default function ContactsList() {
   const [selectedContact, setSelectedContact] = useState<string | null>(null)
   const [syncing, setSyncing] = useState(false)
   
-  // Estados para el nuevo contacto
   const [showAddForm, setShowAddForm] = useState(false)
-  const [newContactId, setNewContactId] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('') 
   const [isAdding, setIsAdding] = useState(false)
 
   const filteredContacts = contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(searchTerm.toLowerCase())
+    contact.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    contact.phone?.includes(searchTerm)
   )
 
   const handleAddContact = async () => {
-    if (!newContactId) return;
+    if (!phoneNumber) return;
     
     setIsAdding(true);
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const userId = user.usuarioId;
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      // Corrección: Aseguramos que tomamos el ID correcto (id o usuarioId)
+      const userId = user?.id || user?.usuarioId;
 
       if (!userId) {
-        showToast('Debes estar logueado', 'error');
+        showToast('Debes estar logueado para agregar contactos', 'error');
         return;
       }
 
-      // Llamada a tu API https://localhost:7086/api/contactos
-      await addContact(Number(userId), Number(newContactId));
+      // Enviamos como número para cumplir con el contrato de la API
+      await addContact(Number(userId), phoneNumber);
       
       showToast('Contacto agregado con éxito', 'success');
       setShowAddForm(false);
-      setNewContactId('');
-      handleSyncContacts(); // Recargamos la lista para que aparezca el nuevo
+      setPhoneNumber('');
+      handleSyncContacts(); 
     } catch (error: any) {
-      // Si la API devuelve 404 o error, asumimos que no existe
-      showToast('El usuario no está registrado', 'error');
+      // Corrección: Evitamos enviar JSX si el context solo acepta strings
+      showToast('Número no registrado o error de conexión. Verifica el teléfono.', 'error');
     } finally {
       setIsAdding(false);
     }
@@ -57,14 +59,16 @@ export default function ContactsList() {
   const handleSyncContacts = async () => {
     try {
       setSyncing(true)
-      const user = JSON.parse(localStorage.getItem('user') || '{}')
-      if (!user || !user.usuarioId) {
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const userId = user?.id || user?.usuarioId;
+
+      if (!userId) {
         showToast('Usuario no identificado', 'error')
-        setSyncing(false)
         return
       }
 
-      const res = await fetch(`https://localhost:7086/api/contactos/${user.usuarioId}`, {
+      const res = await fetch(`https://localhost:7086/api/contactos/${userId}`, {
         cache: "no-store"
       })
       if (!res.ok) throw new Error('Error cargando contactos')
@@ -81,18 +85,23 @@ export default function ContactsList() {
       }))
 
       setContacts(mappedContacts)
-      showToast('Contactos actualizados', 'success')
     } catch (error) {
-      showToast('Error al cargar contactos', 'error')
+      showToast('Error al sincronizar la lista', 'error')
     } finally {
       setSyncing(false)
     }
   }
 
-  const handleStartChat = (contactId: string, contactName: string) => {
+  const handleStartChat = async (contactId: string, contactName: string) => {
     const contact = contacts.find((c) => c.id === contactId)
-    createDirectChat(contactId, contactName, contact?.photo)
-    showToast(`Chat con ${contactName} creado`, 'success')
+    // Casting 'as any' para acceder a .message si la interfaz no está definida
+    const result = await createDirectChat(contactId, contactName, contact?.photo) as any;
+    
+    if (result?.message?.includes("existía")) {
+        showToast(`Abriendo chat existente con ${contactName}`, 'info')
+    } else {
+        showToast(`Conversación iniciada con ${contactName}`, 'success')
+    }
   }
 
   const handleSelectContact = (contactId: string) => {
@@ -104,7 +113,6 @@ export default function ContactsList() {
   return (
     <div className="space-y-3 rounded-2xl bg-gradient-to-b from-[#0A2E6D]/90 via-[#061a3d]/95 to-[#031028]/95 p-3 md:p-4 shadow-lg ring-1 ring-white/10">
       
-      {/* Botón Principal y Formulario de Agregar */}
       {!showAddForm ? (
         <Button
           onClick={() => setShowAddForm(true)}
@@ -116,22 +124,22 @@ export default function ContactsList() {
       ) : (
         <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-3 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white/60 uppercase">Agregar por ID</span>
+            <span className="text-xs font-bold text-white/60 uppercase">Agregar por Teléfono</span>
             <button onClick={() => setShowAddForm(false)} className="text-white/40 hover:text-white">
               <X className="w-4 h-4" />
             </button>
           </div>
           <div className="flex gap-2">
             <input
-              type="number"
-              placeholder="ID del usuario..."
-              value={newContactId}
-              onChange={(e) => setNewContactId(e.target.value)}
+              type="text"
+              placeholder="Ej: 88887777"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
               className="flex-1 px-3 py-2 bg-black/20 text-white text-sm rounded-lg border border-white/10 outline-none focus:ring-1 focus:ring-[#E21B23]"
             />
             <Button 
               onClick={handleAddContact}
-              disabled={isAdding || !newContactId}
+              disabled={isAdding || !phoneNumber}
               className="bg-[#E21B23] hover:bg-[#E21B23]/90 h-9 px-4"
             >
               {isAdding ? '...' : 'Agregar'}
@@ -140,19 +148,17 @@ export default function ContactsList() {
         </div>
       )}
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Buscar contacto..."
-          className="w-full pl-9 pr-3 py-2.5 bg-white/5 text-white placeholder:text-white/50 rounded-xl border border-white/10 outline-none transition-all duration-200 focus:ring-2 focus:ring-[#E21B23]/40"
+          placeholder="Buscar contacto o teléfono..."
+          className="w-full pl-9 pr-3 py-2.5 bg-white/5 text-white placeholder:text-white/50 rounded-xl border border-white/10 outline-none focus:ring-2 focus:ring-[#E21B23]/40"
         />
       </div>
 
-      {/* Sync & Create Group Buttons */}
       <div className="flex gap-2">
         <Button
           onClick={handleSyncContacts}
@@ -160,19 +166,10 @@ export default function ContactsList() {
           variant="outline"
           className="flex-1 text-white/90 border-white/15 bg-white/5 hover:bg-white/10 shadow-md rounded-xl transition-all duration-200"
         >
-          {syncing ? 'Sincronizando...' : '🔄 Sincronizar'}
+          {syncing ? 'Cargando...' : '🔄 Sincronizar'}
         </Button>
-        {selectedContacts.length > 0 && (
-          <Button
-            onClick={() => setShowGroupModal(true)}
-            className="flex-1 bg-[#E21B23] hover:bg-[#E21B23]/90 text-white shadow-md shadow-[#E21B23]/20 rounded-xl"
-          >
-            👥 Grupo ({selectedContacts.length})
-          </Button>
-        )}
       </div>
 
-      {/* Contacts List */}
       <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
         {filteredContacts.map((contact) => (
           <div
@@ -192,14 +189,12 @@ export default function ContactsList() {
               </div>
 
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E21B23]/25 via-white/10 to-[#0A2E6D]/60 text-white flex items-center justify-center text-lg font-semibold flex-shrink-0 ring-1 ring-white/15">
-                {contact.photo}
+                {contact.photo?.length === 1 ? contact.photo : contact.name.charAt(0).toUpperCase()}
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-sm text-white truncate">{contact.name}</p>
-                </div>
-                <p className="text-xs text-white/60">ID: {contact.id}</p>
+                <p className="font-semibold text-sm text-white truncate">{contact.name}</p>
+                <p className="text-xs text-white/60">{contact.phone}</p>
               </div>
 
               <button
@@ -216,7 +211,6 @@ export default function ContactsList() {
         ))}
       </div>
 
-      {/* Modales existentes */}
       <CreateGroupModal
         isOpen={showGroupModal}
         onClose={() => { setShowGroupModal(false); setSelectedContacts([]); }}

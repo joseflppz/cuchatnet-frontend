@@ -7,7 +7,7 @@ using CUChatNet.Api.Dtos;
 namespace CUChatNet.Api.Controllers;
 
 [ApiController]
-[Route("api/usuarios")]
+[Route("api/users")]
 public class UsuariosController : ControllerBase
 {
     private readonly CUChatNetDbContext _db;
@@ -18,25 +18,30 @@ public class UsuariosController : ControllerBase
     }
 
     // ===============================
-    // 🔹 OBTENER TODOS
+    // 🔹 OBTENER TODOS (Contactos)
     // ===============================
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var usuarios = await _db.Usuarios
+        // 1. Traemos los datos de la DB primero
+        var usuariosDb = await _db.Usuarios
             .Where(u => !u.Eliminado)
-            .Select(u => new
-            {
-                u.UsuarioId,
-                u.Nombre,
-                Telefono = u.ExtensionPais + u.NumeroTelefono,
-                u.EstadoPerfil,
-                u.Descripcion,
-                u.Activo
-            })
             .ToListAsync();
 
-        return Ok(usuarios);
+        // 2. Formateamos en memoria para evitar errores de traducción a SQL
+        var resultado = usuariosDb.Select(u => new
+        {
+            Id = u.UsuarioId,
+            UsuarioId = u.UsuarioId,
+            u.Nombre,
+            u.FotoUrl,
+            Telefono = u.ExtensionPais + u.NumeroTelefono,
+            u.EstadoPerfil,
+            u.Descripcion,
+            ActivityStatus = u.Activo ? "online" : "offline" // ✅ Ahora sí funciona
+        });
+
+        return Ok(resultado);
     }
 
     // ===============================
@@ -45,23 +50,27 @@ public class UsuariosController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(long id)
     {
-        var user = await _db.Usuarios
+        var u = await _db.Usuarios
             .Where(u => u.UsuarioId == id && !u.Eliminado)
-            .Select(u => new
-            {
-                u.UsuarioId,
-                u.Nombre,
-                Telefono = u.ExtensionPais + u.NumeroTelefono,
-                u.EstadoPerfil,
-                u.Descripcion,
-                u.Activo
-            })
             .FirstOrDefaultAsync();
 
-        if (user == null)
+        if (u == null)
             return NotFound();
 
-        return Ok(user);
+        // Formateamos la respuesta del objeto individual
+        var result = new
+        {
+            u.UsuarioId,
+            u.Nombre,
+            u.FotoUrl,
+            Telefono = u.ExtensionPais + u.NumeroTelefono,
+            u.EstadoPerfil,
+            u.Descripcion,
+            u.Activo,
+            ActivityStatus = u.Activo ? "online" : "offline"
+        };
+
+        return Ok(result);
     }
 
     // ===============================
@@ -75,25 +84,19 @@ public class UsuariosController : ControllerBase
         if (user == null || user.Eliminado)
             return NotFound();
 
-        // ✅ Nombre
         if (!string.IsNullOrWhiteSpace(request.Name))
             user.Nombre = request.Name;
 
-        // ✅ Estado CONTROLADO (NO romper CHECK)
         var estadosValidos = new[] { "available", "away", "busy", "offline" };
-
-        if (!string.IsNullOrWhiteSpace(request.Status) &&
-            estadosValidos.Contains(request.Status))
+        if (!string.IsNullOrWhiteSpace(request.Status) && estadosValidos.Contains(request.Status))
         {
             user.EstadoPerfil = request.Status;
         }
 
-        // ✅ Descripción (esto es lo que tú querías poner largo)
         if (!string.IsNullOrWhiteSpace(request.Description))
             user.Descripcion = request.Description;
 
         await _db.SaveChangesAsync();
-
         return Ok(new { message = "Usuario actualizado correctamente" });
     }
 
@@ -104,55 +107,11 @@ public class UsuariosController : ControllerBase
     public async Task<IActionResult> Delete(long id)
     {
         var user = await _db.Usuarios.FindAsync(id);
-
-        if (user == null)
-            return NotFound();
+        if (user == null) return NotFound();
 
         user.Eliminado = true;
-
         await _db.SaveChangesAsync();
 
         return Ok(new { message = "Usuario eliminado" });
-    }
-
-    // ===============================
-    // 🔹 CREAR USUARIO (FIX TOTAL)
-    // ===============================
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] UpdateUserRequest request)
-    {
-        // ✅ SIEMPRE estado válido
-        var estado = "available";
-
-        var user = new Usuario
-        {
-            Nombre = string.IsNullOrWhiteSpace(request.Name)
-                ? "Usuario"
-                : request.Name,
-
-            EstadoPerfil = estado,
-
-            Descripcion = request.Description ?? "",
-
-            ExtensionPais = "+506",
-            NumeroTelefono = Guid.NewGuid().ToString().Substring(0, 8),
-
-            Activo = true,
-            Eliminado = false,
-            Verificado = true,
-
-            FechaCreacion = DateTime.UtcNow
-        };
-
-        _db.Usuarios.Add(user);
-        await _db.SaveChangesAsync();
-
-        return Ok(new
-        {
-            user.UsuarioId,
-            user.Nombre,
-            user.EstadoPerfil,
-            user.Descripcion
-        });
     }
 }

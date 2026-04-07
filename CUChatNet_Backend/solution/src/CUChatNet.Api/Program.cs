@@ -1,6 +1,7 @@
-﻿using CUChatNet.Api.Data;
+﻿using CUChatNet.Api.Data; // Asegúrate de crear la carpeta Hubs
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -9,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// 1. AGREGAR SIGNALR PARA CHAT EN VIVO
+builder.Services.AddSignalR();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -34,24 +38,39 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddDbContext<CUChatNetDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+if (string.IsNullOrEmpty(connectionString) || connectionString.Contains("SQLEXPRESS") || connectionString.Contains("LocalDB"))
+{
+    Console.WriteLine("⚠️ Redirigiendo conexión a Base de Datos en PLESK (CUC)...");
+    connectionString = "Server=tcp:tiusr25pl.cuc-carrera-ti.ac.cr,1433;Initial Catalog=tiusr25pl_CUChatNetDB;User ID=CUChatNetDB;Password=CUChatNetDB;Encrypt=True;TrustServerCertificate=True;Connect Timeout=60;MultipleActiveResultSets=True;";
+}
+
+builder.Services.AddDbContext<CUChatNetDbContext>(options =>
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 10,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null);
+    })
+);
+
+// 2. CONFIGURAR CORS PARA SIGNALR (Permitir credenciales y Next.js)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
-        if (origins.Length == 0)
-            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-        else
-            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+        policy.WithOrigins("http://localhost:3000") // URL de tu frontend
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Obligatorio para que no falle la negociación
     });
 });
 
-var jwtKey = builder.Configuration["Jwt:Key"]!;
-var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
-var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "ClaveSuperSecretaDePrueba1234567890";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "CUChatNet";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "CUChatNetUsers";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -71,18 +90,36 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy =>
-    policy.RequireClaim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "admin"));
+        policy.RequireClaim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "admin"));
 });
 
 var app = builder.Build();
 
+// 3. ARCHIVOS ESTÁTICOS (Para ver fotos, videos y documentos)
+app.UseStaticFiles(); // Carpeta wwwroot
+// Si usas una carpeta externa llamada "Uploads":
+var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+if (!Directory.Exists(uploadsPath)) Directory.CreateDirectory(uploadsPath);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"
+});
+
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(c => {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CUChatNet API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// 4. MAPEAR EL HUB DE SIGNALR
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();
