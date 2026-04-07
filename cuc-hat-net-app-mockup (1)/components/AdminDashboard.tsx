@@ -10,6 +10,7 @@ import AdminMessagesView from './admin/AdminMessagesView'
 import AdminConfigView from './admin/AdminConfigView'
 import AdminSecurityView from './admin/AdminSecurityView'
 import AdminRolesView from './admin/AdminRolesView'
+import AdminAiChat from './admin/AdminAiChat'
 
 export function AdminDashboard() {
   const { adminTab, setAdminTab, setCurrentView, setIsAdmin, showToast } = useApp()
@@ -91,6 +92,9 @@ export function AdminDashboard() {
           {adminTab === 'security' && <AdminSecurityView />}
         </div>
       </div>
+
+      {/* Asistente IA */}
+      <AdminAiChat />
     </div>
   )
 }
