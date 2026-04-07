@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddScoped<ICorreoRecuperacionAdminServicio, CorreoRecuperacionAdminServicio>();
 
 builder.Services.AddSwaggerGen(c =>
 {
