@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace CUChatNet.Api.Models;
 
 public class Rol
@@ -15,6 +17,7 @@ public class Usuario
     public long UsuarioId { get; set; }
     public string ExtensionPais { get; set; } = "";
     public string NumeroTelefono { get; set; } = "";
+    [Column("TelefonoCompleto")] // <--- Esto asegura que use el nombre real de SQL
     public string? TelefonoCompleto { get; set; }
     public string? Email { get; set; }
     public string Nombre { get; set; } = "";

@@ -1,7 +1,14 @@
 namespace CUChatNet.Api.Dtos;
 
 public record CreateDirectChatRequest(long CurrentUserId, long ContactUserId);
-public record CreateGroupChatRequest(long CurrentUserId, string GroupName, string? GroupPhoto, string? GroupDescription, List<long> MemberIds);
+public class CreateGroupChatRequest
+{
+    public long CurrentUserId { get; set; }
+    public string GroupName { get; set; } = string.Empty;
+    public string? GroupPhoto { get; set; }
+    public string? GroupDescription { get; set; }
+    public List<long> MemberIds { get; set; } = new List<long>();
+}
 
 public record ChatListItemDto(
     long Id,

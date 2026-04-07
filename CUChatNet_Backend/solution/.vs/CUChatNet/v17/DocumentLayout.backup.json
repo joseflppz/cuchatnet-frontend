@@ -3,16 +3,68 @@
   "WorkspaceRootPath": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\chatscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\chatscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\adminuserscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\adminuserscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\dtos\\chatdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\dtos\\chatdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\usuarioscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\usuarioscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\messagescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\messagescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\chathub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\chathub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\dtos\\messagedtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\dtos\\messagedtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\uploadcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\uploadcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\contactoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\contactoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\models\\entities.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\models\\entities.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\dtos\\contactdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\dtos\\contactdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\admingroupscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\admingroupscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\models\\chat.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\models\\chat.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\adminuserscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\adminuserscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\models\\bitacoraevento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -35,10 +87,6 @@
       "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\models\\dispositivousuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\models\\chat.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\models\\chat.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\models\\chatusuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\models\\chatusuario.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -55,24 +103,8 @@
       "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\adminmessagescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\dtos\\messagedtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\dtos\\messagedtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\dtos\\statedtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\dtos\\statedtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\dtos\\chatdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\dtos\\chatdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\dtos\\ajustesdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -87,14 +119,6 @@
       "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\dtos\\admindtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\messagescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\messagescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\usuarioscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\usuarioscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\adminauthcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\adminauthcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -105,10 +129,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\admindashboardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\admindashboardcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\admingroupscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\admingroupscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\adminrolescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -139,16 +159,8 @@
       "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\helpers\\phonehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\controllers\\chatscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\controllers\\chatscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\data\\cuchatnetdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\data\\cuchatnetdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|c:\\users\\yeray\\onedrive\\documents\\github\\cuchatnet\\cuchatnet_backend\\solution\\src\\cuchatnet.api\\dtos\\contactdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5FE6363D-DEAD-4088-8899-C79563DCD402}|src\\CUChatNet.Api\\CUChatNet.Api.csproj|solutionrelative:src\\cuchatnet.api\\dtos\\contactdtos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ChatParticipante.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -170,11 +182,11 @@
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
-      "VerticalTabListWidth": 256,
+      "VerticalTabListWidth": 100,
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 9,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
@@ -193,60 +205,117 @@
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
+            {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "ContactosSilenciadoEstado.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ContactosSilenciadoEstado.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\ContactosSilenciadoEstado.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ContactosSilenciadoEstado.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Models\\ContactosSilenciadoEstado.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAUAAAARAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "ChatsController.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\ChatsController.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\ChatsController.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\ChatsController.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\ChatsController.cs",
+              "ViewState": "AgIAAOUAAAAAAAAAAAAAAN0AAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:27:44.401Z",
+              "WhenOpened": "2026-04-05T01:42:43.347Z",
+              "IsPinned": true,
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 5,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Program.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Program.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Program.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-05T00:49:35.113Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MessagesController.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\MessagesController.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\MessagesController.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\MessagesController.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\MessagesController.cs",
+              "ViewState": "AgIAAMUAAAAAAAAAAAAuwNYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-05T02:43:22.357Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "UploadController.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\UploadController.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\UploadController.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\UploadController.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\UploadController.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAgwCgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-07T09:36:04.522Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ContactosController.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\ContactosController.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\ContactosController.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\ContactosController.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\ContactosController.cs",
+              "ViewState": "AgIAAHAAAAAAAAAAAAAgwH4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-07T08:35:13.443Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
               "Title": "Entities.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\Entities.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\Entities.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\Entities.cs*",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Models\\Entities.cs*",
-              "ViewState": "AgIAANkAAAAAAAAAAAAQwN0AAAAAAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\Entities.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Models\\Entities.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAAABQAAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-04-04T00:31:50.63Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "ConfiguracionSistema.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ConfiguracionSistema.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\ConfiguracionSistema.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ConfiguracionSistema.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Models\\ConfiguracionSistema.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAoAAABDAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "UsuariosController.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\UsuariosController.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\UsuariosController.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\UsuariosController.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\UsuariosController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:27:40.572Z",
+              "WhenOpened": "2026-04-07T07:35:20.534Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "BitacoraEvento.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\BitacoraEvento.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\BitacoraEvento.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\BitacoraEvento.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Models\\BitacoraEvento.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAQAAAAbAAAAAAAAAA==",
+              "DocumentIndex": 6,
+              "Title": "MessageDtos.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\MessageDtos.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Dtos\\MessageDtos.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\MessageDtos.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Dtos\\MessageDtos.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAAAAwB4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:29:52.507Z",
+              "WhenOpened": "2026-04-05T02:41:32.766Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 15,
               "Title": "AdminUsersController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminUsersController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AdminUsersController.cs",
@@ -259,20 +328,132 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
+              "Title": "ChatDtos.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\ChatDtos.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Dtos\\ChatDtos.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\ChatDtos.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Dtos\\ChatDtos.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAQwAoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-05T02:41:18.123Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ChatHub.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\ChatHub.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\ChatHub.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\ChatHub.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\ChatHub.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAAowCwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-07T09:29:44.282Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
               "Title": "AuthController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AuthController.cs",
               "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AuthController.cs",
               "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\AuthController.cs",
-              "ViewState": "AgIAAJ0AAAAAAAAAAAAkwLIAAAAuAAAAAAAAAA==",
+              "ViewState": "AgIAANYBAAAAAAAAAAAQwOYBAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-04-04T23:40:09.953Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 11,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\appsettings.json",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\appsettings.json",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\appsettings.json",
+              "RelativeToolTip": "src\\CUChatNet.Api\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-04T00:28:16.744Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ContactDtos.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\ContactDtos.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Dtos\\ContactDtos.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\ContactDtos.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Dtos\\ContactDtos.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-05T02:41:28.394Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "BitacoraEvento.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\BitacoraEvento.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\BitacoraEvento.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\BitacoraEvento.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Models\\BitacoraEvento.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAQAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-07T00:29:52.507Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Chat.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\Chat.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\Chat.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\Chat.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Models\\Chat.cs",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAIwB8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-07T00:35:00.085Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "AdminGroupsController.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminGroupsController.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AdminGroupsController.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminGroupsController.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\AdminGroupsController.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAQwBYAAAAzAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-05T05:38:42.489Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "ConfiguracionSistema.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ConfiguracionSistema.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\ConfiguracionSistema.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ConfiguracionSistema.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Models\\ConfiguracionSistema.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAoAAABDAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-07T00:27:40.572Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "ContactosSilenciadoEstado.cs",
+              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ContactosSilenciadoEstado.cs",
+              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\ContactosSilenciadoEstado.cs",
+              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ContactosSilenciadoEstado.cs",
+              "RelativeToolTip": "src\\CUChatNet.Api\\Models\\ContactosSilenciadoEstado.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAUAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-04-07T00:27:44.401Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
               "Title": "AjustesController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AjustesController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AjustesController.cs",
@@ -280,12 +461,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\AjustesController.cs",
               "ViewState": "AgIAAPkAAAAAAAAAAAAgwAgBAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:26:48.79Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-07T00:26:48.79Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 20,
               "Title": "DispositivoUsuario.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\DispositivoUsuario.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\DispositivoUsuario.cs",
@@ -293,25 +473,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Models\\DispositivoUsuario.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwAUAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:27:46.936Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-07T00:27:46.936Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "Chat.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\Chat.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\Chat.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\Chat.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Models\\Chat.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:35:00.085Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 21,
               "Title": "ChatUsuario.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ChatUsuario.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\ChatUsuario.cs",
@@ -319,12 +485,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Models\\ChatUsuario.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:34:58.855Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-07T00:34:58.855Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 22,
               "Title": "PreferenciasUsuario.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\PreferenciasUsuario.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\PreferenciasUsuario.cs",
@@ -332,12 +497,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Models\\PreferenciasUsuario.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:28:04.103Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-07T00:28:04.103Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 23,
               "Title": "CodigoVerificacion.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\CodigoVerificacion.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\CodigoVerificacion.cs",
@@ -345,12 +509,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Models\\CodigoVerificacion.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:34:53.948Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-07T00:34:53.948Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 24,
               "Title": "AdminMessagesController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminMessagesController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AdminMessagesController.cs",
@@ -358,38 +521,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\AdminMessagesController.cs",
               "ViewState": "AgIAAA0AAAAAAAAAAADgvxgAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:27:06.757Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-07T00:27:06.757Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\appsettings.json",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\appsettings.json",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\appsettings.json",
-              "RelativeToolTip": "src\\CUChatNet.Api\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAeAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-04-04T00:28:16.744Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Program.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Program.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Program.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Program.cs",
-              "ViewState": "AgIAAD8AAAAAAAAAAAAiwFgAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T00:49:35.113Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 26,
               "Title": "AjustesDtos.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\AjustesDtos.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Dtos\\AjustesDtos.cs",
@@ -397,12 +533,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Dtos\\AjustesDtos.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:27:31.342Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-07T00:27:31.342Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 27,
               "Title": "AuthDtos.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\AuthDtos.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Dtos\\AuthDtos.cs",
@@ -410,12 +545,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Dtos\\AuthDtos.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T04:11:54.486Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-05T04:11:54.486Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 28,
               "Title": "AdminDtos.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\AdminDtos.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Dtos\\AdminDtos.cs",
@@ -423,51 +557,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Dtos\\AdminDtos.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T04:45:42.452Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-05T04:45:42.452Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
-              "Title": "MessagesController.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\MessagesController.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\MessagesController.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\MessagesController.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\MessagesController.cs",
-              "ViewState": "AgIAAHkAAAAAAAAAAAASwH0AAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T02:43:22.357Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 22,
-              "Title": "UsuariosController.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\UsuariosController.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\UsuariosController.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\UsuariosController.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\UsuariosController.cs",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAIwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:01:57.448Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 17,
-              "Title": "ChatDtos.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\ChatDtos.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Dtos\\ChatDtos.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\ChatDtos.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Dtos\\ChatDtos.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T02:41:18.123Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 25,
               "Title": "StateDtos.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\StateDtos.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Dtos\\StateDtos.cs",
@@ -475,25 +569,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Dtos\\StateDtos.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T02:41:31.638Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-05T02:41:31.638Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
-              "Title": "MessageDtos.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\MessageDtos.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Dtos\\MessageDtos.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\MessageDtos.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Dtos\\MessageDtos.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAAQwA4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T02:41:32.766Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 29,
               "Title": "AdminAuthController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminAuthController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AdminAuthController.cs",
@@ -501,12 +581,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\AdminAuthController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:27:10.824Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-07T00:27:10.824Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 31,
               "Title": "AdminDashboardController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminDashboardController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AdminDashboardController.cs",
@@ -514,25 +593,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\AdminDashboardController.cs",
               "ViewState": "AgIAAAoAAAAAAAAAAAAEwBYAAABVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T05:38:44.382Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-05T05:38:44.382Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
-              "Title": "AdminGroupsController.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminGroupsController.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AdminGroupsController.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminGroupsController.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\AdminGroupsController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T05:38:42.489Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 32,
               "Title": "AdminRolesController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminRolesController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AdminRolesController.cs",
@@ -540,12 +605,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\AdminRolesController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-07T00:26:56.43Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-07T00:26:56.43Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 30,
               "Title": "AdminConfigController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminConfigController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AdminConfigController.cs",
@@ -553,12 +617,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\AdminConfigController.cs",
               "ViewState": "AgIAAB4AAAAAAAAAAAAcwDIAAAA0AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-04T23:36:29.263Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-04T23:36:29.263Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 33,
               "Title": "AdminSecurityController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\AdminSecurityController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\AdminSecurityController.cs",
@@ -566,12 +629,11 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\AdminSecurityController.cs",
               "ViewState": "AgIAAC8AAAAAAAAAAAASwDwAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T07:10:00.076Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-05T07:10:00.076Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 35,
               "Title": "CUChatNet.Api.csproj",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\CUChatNet.Api.csproj",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\CUChatNet.Api.csproj",
@@ -583,7 +645,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 34,
               "Title": "StatesController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\StatesController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\StatesController.cs",
@@ -595,7 +657,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 32,
+              "DocumentIndex": 37,
               "Title": "ContactsController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\ContactsController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\ContactsController.cs",
@@ -607,7 +669,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 36,
               "Title": "HealthController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\HealthController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\HealthController.cs",
@@ -619,7 +681,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 33,
+              "DocumentIndex": 38,
               "Title": "PhoneHelper.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Helpers\\PhoneHelper.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Helpers\\PhoneHelper.cs",
@@ -631,7 +693,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 39,
               "Title": "CUChatNetDbContext.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Data\\CUChatNetDbContext.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Data\\CUChatNetDbContext.cs",
@@ -643,31 +705,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 34,
-              "Title": "ChatsController.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\ChatsController.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\ChatsController.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\ChatsController.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Controllers\\ChatsController.cs",
-              "ViewState": "AgIAAAUAAAAAAAAAAAAowAoBAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T01:42:43.347Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 36,
-              "Title": "ContactDtos.cs",
-              "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\ContactDtos.cs",
-              "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Dtos\\ContactDtos.cs",
-              "ToolTip": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Dtos\\ContactDtos.cs",
-              "RelativeToolTip": "src\\CUChatNet.Api\\Dtos\\ContactDtos.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-05T02:41:28.394Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 41,
               "Title": "MensajeController.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Controllers\\MensajeController.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Controllers\\MensajeController.cs",
@@ -678,7 +716,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 40,
               "Title": "ChatParticipante.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\ChatParticipante.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\ChatParticipante.cs",
@@ -689,7 +727,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 39,
+              "DocumentIndex": 42,
               "Title": "Usuarios.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\Usuarios.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\Usuarios.cs",
@@ -700,7 +738,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 40,
+              "DocumentIndex": 43,
               "Title": "Estado.cs",
               "DocumentMoniker": "C:\\Users\\yeray\\OneDrive\\Documents\\GitHub\\CUChatNET\\CUChatNet_Backend\\solution\\src\\CUChatNet.Api\\Models\\Estado.cs",
               "RelativeDocumentMoniker": "src\\CUChatNet.Api\\Models\\Estado.cs",
@@ -708,10 +746,6 @@
               "RelativeToolTip": "src\\CUChatNet.Api\\Models\\Estado.cs",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-04-05T02:22:24.811Z"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
             }
           ]
         }

@@ -3,6 +3,7 @@ using CUChatNet.Api.Dtos;
 using CUChatNet.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
 
 namespace CUChatNet.Api.Controllers;
 
@@ -11,12 +12,17 @@ namespace CUChatNet.Api.Controllers;
 public class ChatsController : ControllerBase
 {
     private readonly CUChatNetDbContext _db;
+    private readonly IHubContext<ChatHub> _hubContext; // 🔥 Para tiempo real
 
-    public ChatsController(CUChatNetDbContext db)
+    public ChatsController(CUChatNetDbContext db, IHubContext<ChatHub> hubContext)
     {
         _db = db;
+        _hubContext = hubContext;
     }
 
+    // ===============================
+    // 🔹 OBTENER CHATS DEL USUARIO
+    // ===============================
     [HttpGet("users/{userId:long}/chats")]
     public async Task<ActionResult<IEnumerable<ChatListItemDto>>> GetChats(long userId)
     {
@@ -88,6 +94,9 @@ public class ChatsController : ControllerBase
         return Ok(result);
     }
 
+    // ===============================
+    // 🔹 CREAR CHAT DIRECTO
+    // ===============================
     [HttpPost("chats/direct")]
     public async Task<IActionResult> CreateDirect([FromBody] CreateDirectChatRequest request)
     {
@@ -112,6 +121,7 @@ public class ChatsController : ControllerBase
         var chat = new Chat
         {
             TipoChat = "individual",
+            CodigoConversacion = $"DIR-{Guid.NewGuid().ToString().Substring(0, 8)}",
             FechaCreacion = DateTime.UtcNow,
             Activo = true
         };
@@ -120,93 +130,99 @@ public class ChatsController : ControllerBase
         await _db.SaveChangesAsync();
 
         _db.ChatParticipantes.AddRange(
-            new ChatParticipante
-            {
-                ChatId = chat.ChatId,
-                UsuarioId = request.CurrentUserId,
-                Rol = "member",
-                Activo = true,
-                FechaUnion = DateTime.UtcNow
-            },
-            new ChatParticipante
-            {
-                ChatId = chat.ChatId,
-                UsuarioId = request.ContactUserId,
-                Rol = "member",
-                Activo = true,
-                FechaUnion = DateTime.UtcNow
-            }
+            new ChatParticipante { ChatId = chat.ChatId, UsuarioId = request.CurrentUserId, Rol = "member", Activo = true, FechaUnion = DateTime.UtcNow },
+            new ChatParticipante { ChatId = chat.ChatId, UsuarioId = request.ContactUserId, Rol = "member", Activo = true, FechaUnion = DateTime.UtcNow }
         );
-
-        _db.BitacoraEventos.Add(new BitacoraEvento
-        {
-            Categoria = "message",
-            UsuarioId = request.CurrentUserId,
-            Accion = "Chat directo creado",
-            Detalles = $"ChatID: {chat.ChatId}, ContactoID: {request.ContactUserId}",
-            Severidad = "info",
-            DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
-            FechaEvento = DateTime.UtcNow
-        });
 
         await _db.SaveChangesAsync();
         return Ok(new { chatId = chat.ChatId, message = "Chat directo creado." });
     }
 
+    // ===============================
+    // 🔹 CREAR GRUPO (CORREGIDO)
     [HttpPost("chats/group")]
     public async Task<IActionResult> CreateGroup([FromBody] CreateGroupChatRequest request)
     {
+        // 1. Validaciones básicas
+        if (request == null) return BadRequest(new { error = "Datos no recibidos." });
         if (string.IsNullOrWhiteSpace(request.GroupName))
             return BadRequest(new { error = "El nombre del grupo es obligatorio." });
 
-        var chat = new Chat
+        // 2. Forzar que el ID sea válido (si llega 0 es que el mapeo falló)
+        if (request.CurrentUserId <= 0)
+            return BadRequest(new { error = "Error: El ID del usuario creador es 0 o inválido." });
+
+        try
         {
-            TipoChat = "group",
-            Nombre = request.GroupName.Trim(),
-            FotoUrl = request.GroupPhoto,
-            Descripcion = request.GroupDescription,
-            Reglas = "",
-            PermisoEnviarMensajes = "all",
-            PermisoEditarInfo = "admins",
-            CreadoPorUsuarioId = request.CurrentUserId,
-            FechaCreacion = DateTime.UtcNow,
-            Activo = true
-        };
-
-        _db.Chats.Add(chat);
-        await _db.SaveChangesAsync();
-
-        var allMembers = request.MemberIds.Distinct().ToList();
-        if (!allMembers.Contains(request.CurrentUserId))
-            allMembers.Insert(0, request.CurrentUserId);
-
-        foreach (var memberId in allMembers)
-        {
-            _db.ChatParticipantes.Add(new ChatParticipante
+            // 3. Crear la entidad Chat
+            var chat = new Chat
             {
-                ChatId = chat.ChatId,
-                UsuarioId = memberId,
-                Rol = memberId == request.CurrentUserId ? "admin" : "member",
-                Activo = true,
-                FechaUnion = DateTime.UtcNow
+                TipoChat = "group",
+                CodigoConversacion = $"GRP-{Guid.NewGuid().ToString().Substring(0, 8)}",
+                Nombre = request.GroupName.Trim(),
+                FotoUrl = request.GroupPhoto ?? "",
+                Descripcion = request.GroupDescription ?? "",
+                CreadoPorUsuarioId = request.CurrentUserId,
+                FechaCreacion = DateTime.UtcNow,
+                Activo = true
+            };
+
+            _db.Chats.Add(chat);
+            await _db.SaveChangesAsync(); // Guardamos para obtener el ChatId
+
+            // 4. Gestionar participantes
+            var participantesToAdd = new List<ChatParticipante>();
+
+            // Asegurar que el creador esté incluido
+            var todosLosMiembros = request.MemberIds ?? new List<long>();
+            if (!todosLosMiembros.Contains(request.CurrentUserId))
+            {
+                todosLosMiembros.Add(request.CurrentUserId);
+            }
+
+            foreach (var memberId in todosLosMiembros)
+            {
+                // Solo agregamos si el usuario existe para evitar errores de FK
+                var existe = await _db.Usuarios.AnyAsync(u => u.UsuarioId == memberId);
+                if (existe)
+                {
+                    participantesToAdd.Add(new ChatParticipante
+                    {
+                        ChatId = chat.ChatId,
+                        UsuarioId = memberId,
+                        Rol = (memberId == request.CurrentUserId) ? "admin" : "member",
+                        Activo = true,
+                        FechaUnion = DateTime.UtcNow,
+                        Fijado = false,
+                        Archivado = false,
+                        Silenciado = false
+                    });
+                }
+            }
+
+            if (participantesToAdd.Any())
+            {
+                _db.ChatParticipantes.AddRange(participantesToAdd);
+                await _db.SaveChangesAsync();
+            }
+
+            return Ok(new
+            {
+                chatId = chat.ChatId,
+                message = "¡Grupo creado con éxito!",
+                nombre = chat.Nombre
             });
         }
-
-        _db.BitacoraEventos.Add(new BitacoraEvento
+        catch (Exception ex)
         {
-            Categoria = "message",
-            UsuarioId = request.CurrentUserId,
-            Accion = "Grupo creado",
-            Detalles = $"ChatID: {chat.ChatId}, Nombre: {chat.Nombre}",
-            Severidad = "info",
-            DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
-            FechaEvento = DateTime.UtcNow
-        });
-
-        await _db.SaveChangesAsync();
-        return Ok(new { chatId = chat.ChatId, message = "Grupo creado." });
+            // Esto te dirá en la consola de Visual Studio qué falló exactamente
+            Console.WriteLine($"ERROR AL CREAR GRUPO: {ex.Message}");
+            return StatusCode(500, new { error = "Error interno al crear el grupo", detalle = ex.Message });
+        }
     }
-
+    // ===============================
+    // 🔹 DETALLE DEL GRUPO
+    // ===============================
     [HttpGet("chats/{chatId:long}/group-detail")]
     public async Task<ActionResult<GroupDetailDto>> GetGroupDetail(long chatId)
     {
@@ -215,8 +231,7 @@ public class ChatsController : ControllerBase
             .ThenInclude(p => p.Usuario)
             .FirstOrDefaultAsync(c => c.ChatId == chatId && c.TipoChat == "group");
 
-        if (chat is null)
-            return NotFound();
+        if (chat is null) return NotFound();
 
         var dto = new GroupDetailDto(
             chat.ChatId,
@@ -235,34 +250,5 @@ public class ChatsController : ControllerBase
         );
 
         return Ok(dto);
-    }
-
-    [HttpPut("chats/{chatId:long}/group-detail")]
-    public async Task<IActionResult> UpdateGroupDetail(long chatId, [FromBody] UpdateGroupRequest request)
-    {
-        var chat = await _db.Chats.FirstOrDefaultAsync(c => c.ChatId == chatId && c.TipoChat == "group");
-        if (chat is null)
-            return NotFound();
-
-        chat.Nombre = request.Name.Trim();
-        chat.FotoUrl = request.Photo;
-        chat.Descripcion = request.Description;
-        chat.Reglas = request.Rules;
-        chat.PermisoEnviarMensajes = request.SendMessagesPermission;
-        chat.PermisoEditarInfo = request.EditInfoPermission;
-
-        _db.BitacoraEventos.Add(new BitacoraEvento
-        {
-            Categoria = "admin",
-            UsuarioId = chat.CreadoPorUsuarioId,
-            Accion = "Grupo actualizado",
-            Detalles = $"ChatID: {chat.ChatId}",
-            Severidad = "info",
-            DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
-            FechaEvento = DateTime.UtcNow
-        });
-
-        await _db.SaveChangesAsync();
-        return Ok(new { success = true });
     }
 }

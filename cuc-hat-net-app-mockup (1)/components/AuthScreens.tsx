@@ -27,7 +27,7 @@ export function LoginScreen() {
     try {
       setLoading(true)
 
-      await apiPost('/api/verify/send', { email })
+      await apiPost('/api/verify/send', { Email: email })
 
       localStorage.setItem('verify_email', email)
 
