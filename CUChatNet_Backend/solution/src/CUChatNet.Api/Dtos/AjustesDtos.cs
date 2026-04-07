@@ -10,9 +10,9 @@ public record ActualizarPerfilRequest(
 
 public record ActualizarPreferenciasRequest(
     long UsuarioId,
-    bool FotoPerfilVisible,
-    bool EstadoVisible,
-    bool UltimaVezVisible,
+    byte FotoPerfilVisible,
+    byte EstadoVisible,
+    byte UltimaVezVisible,
     bool ConfirmacionesLectura,
     bool NotificacionesEmail,
     bool NotificacionesPush,
@@ -31,9 +31,9 @@ public record PerfilAjustesDto(
 
 public record PreferenciasUsuarioDto(
     long UsuarioId,
-    bool FotoPerfilVisible,
-    bool EstadoVisible,
-    bool UltimaVezVisible,
+    byte FotoPerfilVisible,
+    byte EstadoVisible,
+    byte UltimaVezVisible,
     bool ConfirmacionesLectura,
     bool NotificacionesEmail,
     bool NotificacionesPush,
