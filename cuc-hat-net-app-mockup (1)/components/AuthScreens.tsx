@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { apiPost } from '@/lib/api-client'
 import { loadClientData, mapAuthUser } from '@/lib/api/bootstrap'
+import RecuperarContrasenaAdminScreen from '@/components/admin/RecuperarContrasenaAdminScreen'
 
 export function LoginScreen() {
+  
   const { setCurrentView, showToast } = useApp()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -421,6 +423,7 @@ export function ProfileSetupScreen() {
 }
 
 export function AdminLoginScreen() {
+  const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false)
   const { setCurrentView, setIsAdmin, showToast } = useApp()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -442,6 +445,7 @@ export function AdminLoginScreen() {
   }
 
   return (
+  !mostrarRecuperacion ? (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-white flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <button
@@ -488,9 +492,24 @@ export function AdminLoginScreen() {
             <Button onClick={handleLogin} className="w-full bg-primary hover:bg-primary/90">
               Iniciar Sesión
             </Button>
+
+            {/* 🔥 BOTÓN NUEVO */}
+            <button
+              type="button"
+              onClick={() => setMostrarRecuperacion(true)}
+              className="w-full text-sm text-primary hover:underline mt-2"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+
           </div>
         </div>
       </div>
     </div>
+  ) : (
+    <RecuperarContrasenaAdminScreen
+      onVolverAlLogin={() => setMostrarRecuperacion(false)}
+    />
   )
+)
 }
