@@ -411,10 +411,9 @@ public class AuthController : ControllerBase
             if (user is null)
                 return Unauthorized(new { error = "Credenciales inválidas." });
 
-            var isAdmin = user.UsuarioRoles.Any(x =>
-                x.Rol.Codigo.ToLower() == "admin" && x.Rol.Activo);
+            var isAdmin = user.UsuarioRoles.Any(x => x.Rol.Codigo == "ADMIN" && x.Rol.Activo);
             if (!isAdmin)
-                return Unauthorized(new { error = "No tiene permisos de administrador." });
+                return Forbid();
 
             if (user.CuentaAcceso is null || string.IsNullOrWhiteSpace(user.CuentaAcceso.HashContrasena))
                 return Unauthorized(new { error = "El administrador no tiene contraseña configurada." });
@@ -425,45 +424,23 @@ public class AuthController : ControllerBase
 
             user.FechaUltimoAcceso = DateTime.UtcNow;
             user.CuentaAcceso.UltimoLogin = DateTime.UtcNow;
+
             await _db.SaveChangesAsync();
 
-            var jwtKey = _configuration["Jwt:Key"]!;
-            var jwtIssuer = _configuration["Jwt:Issuer"]!;
-            var jwtAudience = _configuration["Jwt:Audience"]!;
-            var expirationHours = int.TryParse(_configuration["Jwt:ExpirationHours"], out var h) ? h : 8;
-
-            var claims = new[]
-            {
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.UsuarioId.ToString()),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.Nombre),
-                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "admin"),
-            };
-
-            var key = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                System.Text.Encoding.UTF8.GetBytes(jwtKey));
-            var creds = new Microsoft.IdentityModel.Tokens.SigningCredentials(
-                key, Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256);
-
-            var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(
-                issuer: jwtIssuer,
-                audience: jwtAudience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddHours(expirationHours),
-                signingCredentials: creds
+            var userDto = new AuthUserDto(
+                user.UsuarioId,
+                user.TelefonoCompleto ?? email,
+                user.Email,
+                user.Nombre,
+                user.FotoUrl,
+                user.Descripcion,
+                user.EstadoPerfil,
+                "ADMIN",
+                user.FechaCreacion,
+                user.Activo
             );
 
-            var tokenString = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler()
-                .WriteToken(token);
-
-            return Ok(new
-            {
-                success = true,
-                token = tokenString,
-                nombre = user.Nombre,
-                email = user.Email,
-                usuarioId = user.UsuarioId
-            });
+            return Ok(new VerifyResponse(true, "Login admin correcto.", true, userDto, null));
         }
         catch (Exception ex)
         {

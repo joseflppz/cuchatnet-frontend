@@ -87,7 +87,9 @@ public class AdminUsersController : ControllerBase
     [HttpPut("{userId:long}")]
     public async Task<IActionResult> UpdateUser(long userId, [FromBody] UpdateAdminUserRequest request)
     {
-        var user = await _db.Usuarios.Include(u => u.CuentaAcceso).FirstOrDefaultAsync(u => u.UsuarioId == userId && !u.Eliminado);
+        var user = await _db.Usuarios
+            .Include(u => u.CuentaAcceso)
+            .FirstOrDefaultAsync(u => u.UsuarioId == userId && !u.Eliminado);
         if (user is null)
             return NotFound();
 
@@ -112,10 +114,69 @@ public class AdminUsersController : ControllerBase
         return Ok(new { success = true });
     }
 
+    [HttpPut("{userId:long}/block")]
+    public async Task<IActionResult> BlockUser(long userId)
+    {
+        var user = await _db.Usuarios
+            .Include(u => u.CuentaAcceso)
+            .FirstOrDefaultAsync(u => u.UsuarioId == userId && !u.Eliminado);
+
+        if (user is null)
+            return NotFound();
+
+        user.Activo = false;
+        if (user.CuentaAcceso is not null)
+            user.CuentaAcceso.EstadoCuenta = "suspended";
+
+        _db.BitacoraEventos.Add(new BitacoraEvento
+        {
+            Categoria = "admin",
+            UsuarioId = userId,
+            Accion = "Usuario bloqueado",
+            Detalles = user.Nombre,
+            Severidad = "warning",
+            FechaEvento = DateTime.UtcNow,
+            DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString()
+        });
+
+        await _db.SaveChangesAsync();
+        return Ok(new { success = true });
+    }
+
+    [HttpPut("{userId:long}/unblock")]
+    public async Task<IActionResult> UnblockUser(long userId)
+    {
+        var user = await _db.Usuarios
+            .Include(u => u.CuentaAcceso)
+            .FirstOrDefaultAsync(u => u.UsuarioId == userId && !u.Eliminado);
+
+        if (user is null)
+            return NotFound();
+
+        user.Activo = true;
+        if (user.CuentaAcceso is not null)
+            user.CuentaAcceso.EstadoCuenta = "active";
+
+        _db.BitacoraEventos.Add(new BitacoraEvento
+        {
+            Categoria = "admin",
+            UsuarioId = userId,
+            Accion = "Usuario desbloqueado",
+            Detalles = user.Nombre,
+            Severidad = "info",
+            FechaEvento = DateTime.UtcNow,
+            DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString()
+        });
+
+        await _db.SaveChangesAsync();
+        return Ok(new { success = true });
+    }
+
     [HttpDelete("{userId:long}")]
     public async Task<IActionResult> DeleteUser(long userId)
     {
-        var user = await _db.Usuarios.FirstOrDefaultAsync(u => u.UsuarioId == userId && !u.Eliminado);
+        var user = await _db.Usuarios
+            .FirstOrDefaultAsync(u => u.UsuarioId == userId && !u.Eliminado);
         if (user is null)
             return NotFound();
 
