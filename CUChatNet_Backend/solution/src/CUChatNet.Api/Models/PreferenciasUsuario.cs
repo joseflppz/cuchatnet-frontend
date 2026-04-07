@@ -5,9 +5,9 @@ public class PreferenciasUsuario
     public int PreferenciaId { get; set; }
     public long UsuarioId { get; set; }
 
-    public bool FotoPerfilVisible { get; set; }
-    public bool EstadoVisible { get; set; }
-    public bool UltimaVezVisible { get; set; }
+    public byte FotoPerfilVisible { get; set; }
+    public byte EstadoVisible { get; set; }
+    public byte UltimaVezVisible { get; set; }
     public bool ConfirmacionesLectura { get; set; }
 
     public bool NotificacionesEmail { get; set; }
