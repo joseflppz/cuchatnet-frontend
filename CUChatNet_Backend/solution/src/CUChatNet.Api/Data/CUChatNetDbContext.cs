@@ -6,6 +6,7 @@ namespace CUChatNet.Api.Data;
 public class CUChatNetDbContext : DbContext
 {
     public CUChatNetDbContext(DbContextOptions<CUChatNetDbContext> options) : base(options) { }
+    public DbSet<CodigoRecuperacionAdmin> CodigosRecuperacionAdmin { get; set; }
 
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
