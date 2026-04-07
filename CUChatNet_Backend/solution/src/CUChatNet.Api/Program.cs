@@ -1,9 +1,11 @@
-﻿using CUChatNet.Api.Data;
+using CUChatNet.Api.Data;
+using CUChatNet.Api.Servicios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using CUChatNet.Api.Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
 
