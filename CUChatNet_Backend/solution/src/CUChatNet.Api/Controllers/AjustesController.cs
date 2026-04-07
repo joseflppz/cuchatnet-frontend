@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using CUChatNet.Api.Data;
 using CUChatNet.Api.Dtos;
 using CUChatNet.Api.Models;
@@ -60,7 +60,11 @@ public class AjustesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(new
+            {
+                error = ex.Message,
+                inner = ex.InnerException?.Message
+            });
         }
     }
 
@@ -89,18 +93,12 @@ public class AjustesController : ControllerBase
             usuario.EstadoPerfil = request.Status.Trim();
             usuario.FechaUltimoAcceso = DateTime.UtcNow;
 
-            /*
-            _db.BitacoraEventos.Add(new BitacoraEvento
-            {
-                Categoria = "profile",
-                UsuarioId = usuario.UsuarioId,
-                Accion = "Perfil actualizado",
-                Detalles = $"Nombre: {usuario.Nombre}, Estado: {usuario.EstadoPerfil}",
-                Severidad = "info",
-                DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
-                FechaEvento = DateTime.UtcNow,
-            });
-            */
+            RegistrarBitacora(
+                usuario.UsuarioId,
+                "system",
+                "Perfil actualizado",
+                $"Nombre: {usuario.Nombre}, Estado: {usuario.EstadoPerfil}"
+            );
 
             await _db.SaveChangesAsync();
 
@@ -118,7 +116,11 @@ public class AjustesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(new
+            {
+                error = ex.Message,
+                inner = ex.InnerException?.Message
+            });
         }
     }
 
@@ -129,6 +131,13 @@ public class AjustesController : ControllerBase
         {
             if (request is null || request.UsuarioId <= 0)
                 return BadRequest(new { error = "UsuarioId es requerido." });
+
+            if (!EsVisibilidadValida(request.FotoPerfilVisible) ||
+                !EsVisibilidadValida(request.EstadoVisible) ||
+                !EsVisibilidadValida(request.UltimaVezVisible))
+            {
+                return BadRequest(new { error = "Los valores de visibilidad solo pueden ser 0, 1 o 2." });
+            }
 
             var usuarioExiste = await _db.Usuarios
                 .AnyAsync(x => x.UsuarioId == request.UsuarioId && !x.Eliminado);
@@ -168,16 +177,12 @@ public class AjustesController : ControllerBase
                 preferencias.FechaActualizacion = DateTime.UtcNow;
             }
 
-            _db.BitacoraEventos.Add(new BitacoraEvento
-            {
-                Categoria = "settings",
-                UsuarioId = request.UsuarioId,
-                Accion = "Preferencias actualizadas",
-                Detalles = "Se actualizaron privacidad y notificaciones.",
-                Severidad = "info",
-                DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
-                FechaEvento = DateTime.UtcNow,
-            });
+            RegistrarBitacora(
+                request.UsuarioId,
+                "system",
+                "Preferencias actualizadas",
+                "Se actualizaron privacidad y notificaciones."
+            );
 
             await _db.SaveChangesAsync();
 
@@ -197,9 +202,14 @@ public class AjustesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(new
+            {
+                error = ex.Message,
+                inner = ex.InnerException?.Message
+            });
         }
     }
+
 
     [HttpGet("seguridad/{usuarioId:long}")]
     public async Task<IActionResult> ObtenerSeguridad(long usuarioId)
@@ -217,8 +227,32 @@ public class AjustesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(new { error = ex.Message });
+            return BadRequest(new
+            {
+                error = ex.Message,
+                inner = ex.InnerException?.Message
+            });
         }
+    }
+
+    private void RegistrarBitacora(long? usuarioId, string categoria, string accion, string? detalles)
+    {
+        _db.BitacoraEventos.Add(new BitacoraEvento
+        {
+            Categoria = categoria,
+            UsuarioId = usuarioId,
+            DispositivoId = null,
+            Accion = accion,
+            Detalles = detalles,
+            Severidad = "info",
+            DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
+            FechaEvento = DateTime.UtcNow
+        });
+    }
+
+    private static bool EsVisibilidadValida(byte valor)
+    {
+        return valor <= 2;
     }
 
     private async Task<PreferenciasUsuario> ObtenerOCrearPreferencias(long usuarioId)
@@ -232,9 +266,9 @@ public class AjustesController : ControllerBase
         preferencias = new PreferenciasUsuario
         {
             UsuarioId = usuarioId,
-            FotoPerfilVisible = true,
-            EstadoVisible = true,
-            UltimaVezVisible = true,
+            FotoPerfilVisible = 1,
+            EstadoVisible = 1,
+            UltimaVezVisible = 1,
             ConfirmacionesLectura = true,
             NotificacionesEmail = true,
             NotificacionesPush = true,
