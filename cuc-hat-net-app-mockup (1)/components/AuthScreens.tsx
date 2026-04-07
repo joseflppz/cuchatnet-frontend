@@ -429,20 +429,22 @@ export function AdminLoginScreen() {
   const [password, setPassword] = useState('')
 
   const handleLogin = async () => {
-    if (!username || !password) {
-      showToast('Por favor completa todos los campos', 'error')
-      return
-    }
-
-    try {
-      await apiPost('/api/auth/admin-login', { email: username, password })
-      setIsAdmin(true)
-      showToast('Sesión administrativa iniciada', 'success')
-      setTimeout(() => setCurrentView('admin-dashboard'), 500)
-    } catch (error: any) {
-      showToast(error.message || 'Credenciales incorrectas', 'error')
-    }
+  if (!username || !password) {
+    showToast('Por favor completa todos los campos', 'error')
+    return
   }
+
+  try {
+    const data = await apiPost<any>('/api/auth/admin-login', { email: username, password })
+    localStorage.setItem('admin_token', data.token)
+    localStorage.setItem('admin_nombre', data.nombre)
+    setIsAdmin(true)
+    showToast('Sesión administrativa iniciada', 'success')
+    setTimeout(() => setCurrentView('admin-dashboard'), 500)
+  } catch (error: any) {
+    showToast(error.message || 'Credenciales incorrectas', 'error')
+  }
+}
 
   return (
   !mostrarRecuperacion ? (

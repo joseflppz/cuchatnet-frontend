@@ -424,23 +424,45 @@ public class AuthController : ControllerBase
 
             user.FechaUltimoAcceso = DateTime.UtcNow;
             user.CuentaAcceso.UltimoLogin = DateTime.UtcNow;
-
             await _db.SaveChangesAsync();
 
-            var userDto = new AuthUserDto(
-                user.UsuarioId,
-                user.TelefonoCompleto ?? email,
-                user.Email,
-                user.Nombre,
-                user.FotoUrl,
-                user.Descripcion,
-                user.EstadoPerfil,
-                "ADMIN",
-                user.FechaCreacion,
-                user.Activo
+            var jwtKey = _configuration["Jwt:Key"]!;
+            var jwtIssuer = _configuration["Jwt:Issuer"]!;
+            var jwtAudience = _configuration["Jwt:Audience"]!;
+            var expirationHours = int.TryParse(_configuration["Jwt:ExpirationHours"], out var h) ? h : 8;
+
+            var claims = new[]
+            {
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.UsuarioId.ToString()),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, user.Nombre),
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "admin"),
+            };
+
+            var key = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                System.Text.Encoding.UTF8.GetBytes(jwtKey));
+            var creds = new Microsoft.IdentityModel.Tokens.SigningCredentials(
+                key, Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256);
+
+            var token = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(
+                issuer: jwtIssuer,
+                audience: jwtAudience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(expirationHours),
+                signingCredentials: creds
             );
 
-            return Ok(new VerifyResponse(true, "Login admin correcto.", true, userDto, null));
+            var tokenString = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler()
+                .WriteToken(token);
+
+            return Ok(new
+            {
+                success = true,
+                token = tokenString,
+                nombre = user.Nombre,
+                email = user.Email,
+                usuarioId = user.UsuarioId
+            });
         }
         catch (Exception ex)
         {
