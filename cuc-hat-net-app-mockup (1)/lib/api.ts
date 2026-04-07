@@ -164,13 +164,16 @@ export const addContact = async (userId: number, phoneNumber: string) => {
   });
 };
 
+// Reemplaza esto en lib/api.ts
 export async function createGroupApi(groupData: { 
-  userId: number, 
-  participantesIds: number[], 
-  esGrupo: boolean, 
-  nombreGrupo: string 
+  CurrentUserId: number; 
+  GroupName: string; 
+  MemberIds: number[];
+  GroupDescription?: string;
+  GroupPhoto?: string;
 }) {
-  return apiFetch(`chats`, {
+  // 🎯 El cambio clave: 'api/chats/group'
+  return apiFetch(`api/chats/group`, {
     method: 'POST',
     body: JSON.stringify(groupData)
   });

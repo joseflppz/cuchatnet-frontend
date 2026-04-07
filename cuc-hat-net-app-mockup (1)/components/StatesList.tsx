@@ -25,10 +25,8 @@ export default function StatesList() {
   const [stateToDelete, setStateToDelete] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  // Normalización de ID del usuario actual para comparaciones
   const currentUserId = currentUser?.id?.toString().trim();
 
-  // --- CARGA DE DATOS ---
   useEffect(() => {
     if (!currentUserId) return;
 
@@ -37,9 +35,9 @@ export default function StatesList() {
         const data = await getStatesFeed(currentUserId);
         const mappedStates = data.map((s: any) => ({
           id: s.id.toString(),
-          userId: s.userId.toString().trim(), // Normalizamos el ID del dueño del estado
+          userId: s.userId.toString().trim(),
           userName: s.userName,
-          userPhoto: s.userPhoto || s.userName.charAt(0).toUpperCase(),
+          userPhoto: s.userPhoto || s.userName?.charAt(0).toUpperCase() || '?',
           content: s.content,
           type: s.type, 
           createdAt: s.createdAt,
@@ -56,7 +54,6 @@ export default function StatesList() {
     return () => clearInterval(interval);
   }, [currentUserId, setStates]);
 
-  // Filtros con comparación robusta
   const userStates = states.filter((s) => s.userId === currentUserId)
   const allOtherStates = states.filter((s) => s.userId !== currentUserId)
 
@@ -172,7 +169,6 @@ export default function StatesList() {
                     </div>
                   </div>
 
-                  {/* BOTONES DE ACCIÓN PARA TUS ESTADOS */}
                   <div className="flex gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={(e) => {
@@ -216,8 +212,24 @@ export default function StatesList() {
                 className="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-200 cursor-pointer group relative shadow-md hover:shadow-lg backdrop-blur-md"
               >
                 <div className="flex gap-3 items-start">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E21B23]/25 via-white/10 to-[#0A2E6D]/60 text-white flex items-center justify-center flex-shrink-0 font-semibold shadow-md ring-1 ring-white/15">
-                    {state.userPhoto}
+                  
+                  {/* AVATAR CORREGIDO CON NULL-CHECKS PARA TYPESCRIPT */}
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E21B23]/25 via-white/10 to-[#0A2E6D]/60 text-white flex items-center justify-center flex-shrink-0 font-semibold shadow-md ring-1 ring-white/15 overflow-hidden">
+                    {state.userPhoto && state.userPhoto.length > 2 ? (
+                      <img 
+                        src={state.userPhoto} 
+                        alt={state.userName} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if(parent) parent.innerHTML = state.userName?.charAt(0).toUpperCase() || '?';
+                        }}
+                      />
+                    ) : (
+                      <span>{state.userPhoto || state.userName?.charAt(0).toUpperCase() || '?'}</span>
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -247,7 +259,6 @@ export default function StatesList() {
 
                     {menuOpen === state.id && (
                       <div className="absolute right-0 top-full mt-2 bg-[#061a3d]/95 backdrop-blur-xl rounded-xl shadow-lg border border-white/10 z-50 min-w-[160px] overflow-hidden">
-                        {/* Verificación de dueño de estado robusta */}
                         {state.userId.toString().trim() === currentUserId ? (
                           <button
                             onClick={(e) => {

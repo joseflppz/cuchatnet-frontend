@@ -26,9 +26,9 @@ export default function ChatWindow() {
 
   const API_BASE_URL = "https://localhost:7086";
 
-  // Buscar si es un chat directo o un grupo en ambos arrays
-  const currentChat = chats.find(c => String(c.id) === String(currentChatId)) || 
-                     groups.find(g => String(g.id) === String(currentChatId));
+  // Buscamos el chat o grupo actual de forma segura
+  const currentChat = (chats.find(c => String(c.id) === String(currentChatId)) || 
+                     groups.find(g => String(g.id) === String(currentChatId))) as any;
 
   // --- 1. CARGA DE HISTORIAL ---
   const loadData = useCallback(async () => {
@@ -93,14 +93,14 @@ export default function ChatWindow() {
     });
 
     connection.on("UserStatusChanged", (userId, isOnline) => {
-      if (currentChat && String(userId) === String((currentChat as any).participantId)) {
+      if (currentChat && String(userId) === String(currentChat.participantId)) {
         setIsPartnerOnline(isOnline);
       }
     });
 
     connectionRef.current = connection;
     return () => { connection.stop(); };
-  }, [currentChatId, currentUser]);
+  }, [currentChatId, currentUser, currentChat]);
 
   useEffect(() => { 
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) 
@@ -120,7 +120,7 @@ export default function ChatWindow() {
     return <Check size={14} className="text-gray-400" />;
   };
 
-  // --- 3. ACCIONES: ENVIAR, ARCHIVOS, AUDIO ---
+  // --- 3. ACCIONES ---
   const handleSendMessage = async (content?: string, type: string = "text") => {
     if (!currentUser || !currentChatId) return;
     const finalContent = typeof content === 'string' ? content : messageText.trim();
@@ -135,7 +135,7 @@ export default function ChatWindow() {
         type: type
       });
     } catch (error: any) { 
-      setInlineError("Error al enviar: " + (error.response?.data?.error || "Servidor offline")); 
+      setInlineError("Error al enviar"); 
     }
   };
 
@@ -205,14 +205,14 @@ export default function ChatWindow() {
       <div className="p-3 bg-[#f0f2f5] flex items-center justify-between border-b border-gray-300 shadow-sm z-10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-[#E21B23] to-[#0A2E6D] rounded-full overflow-hidden flex items-center justify-center border border-gray-300 shadow-sm">
-            {(currentChat as any).participantPhoto || (currentChat as any).photo ? (
-              <img src={getFileUrl((currentChat as any).participantPhoto || (currentChat as any).photo)} className="w-full h-full object-cover" alt="" />
+            {currentChat.participantPhoto || currentChat.photo ? (
+              <img src={getFileUrl(currentChat.participantPhoto || currentChat.photo)} className="w-full h-full object-cover" alt="" />
             ) : (
-              <span className="text-white font-bold">{(currentChat as any).participantName?.charAt(0) || (currentChat as any).name?.charAt(0)}</span>
+              <span className="text-white font-bold">{currentChat.participantName?.charAt(0) || currentChat.name?.charAt(0)}</span>
             )}
           </div>
           <div>
-            <h2 className="font-bold text-gray-800 text-sm">{(currentChat as any).participantName || (currentChat as any).name}</h2>
+            <h2 className="font-bold text-gray-800 text-sm">{currentChat.participantName || currentChat.name}</h2>
             <p className={`text-[10px] ${isPartnerOnline ? 'text-green-600 font-bold' : 'text-gray-500'}`}>
               {currentChat.isGroup ? 'Grupo activo' : (isPartnerOnline ? '● en línea' : 'desconectado')}
             </p>
