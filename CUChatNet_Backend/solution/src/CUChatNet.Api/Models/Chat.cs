@@ -2,30 +2,31 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace CUChatNet.Api.Models;
-
-public class Chat
+namespace CUChatNet.Api.Models
 {
-    [Key] // 🔥 IMPORTANTE para evitar errores raros
-    public long ChatId { get; set; }
+    public class Chat
+    {
+        [Key]
+        public long ChatId { get; set; }
 
-    public string? Nombre { get; set; } // 👈 opcional (para grupo)
-    public bool EsGrupo { get; set; }
+        public string? Nombre { get; set; }
+        public string? FotoUrl { get; set; }
+        public string? Descripcion { get; set; }
+        public string? CodigoConversacion { get; set; }
+        public string? TipoChat { get; set; } // "Individual" o "Grupo"
+        public bool EsGrupo { get; set; }
+        public bool Activo { get; set; } = true;
+        public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+        public long? CreadoPorUsuarioId { get; set; }
 
-    public bool Activo { get; set; } = true;
+        // --- Campos de Permisos y Reglas ---
+        public string? Reglas { get; set; }
+        public string? PermisoEnviarMensajes { get; set; }
+        public string? PermisoEditarInfo { get; set; }
 
-    // 🔥 Relaciones
-    public ICollection<ChatUsuario> ChatUsuarios { get; set; } = new List<ChatUsuario>();
-    public ICollection<Mensaje> Mensajes { get; set; } = new List<Mensaje>();
-    public ICollection<ChatParticipante> Participantes { get; set; } = new List<ChatParticipante>();
-
-    // 🔥 Extras (no obligatorios)
-    public string? CodigoConversacion { get; set; }
-    public string? TipoChat { get; set; }
-    public string? FotoUrl { get; set; }
-    public long? CreadoPorUsuarioId { get; set; }
-
-    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow; // 👈 evita nulls
-
-    public string? Descripcion { get; set; }
+        // --- Relaciones (Navegación) ---
+        public ICollection<ChatUsuario> ChatUsuarios { get; set; } = new List<ChatUsuario>();
+        public ICollection<Mensaje> Mensajes { get; set; } = new List<Mensaje>();
+        public ICollection<ChatParticipante> Participantes { get; set; } = new List<ChatParticipante>();
+    }
 }
