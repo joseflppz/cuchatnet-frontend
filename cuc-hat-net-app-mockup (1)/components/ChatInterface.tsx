@@ -79,18 +79,32 @@ export function ChatInterface() {
 
           <div className="flex items-center gap-3 bg-primary/20 rounded-lg p-3">
             <div className="w-10 h-10 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-bold overflow-hidden border border-primary/10">
-              {currentUser?.photo ? (
-                <img src={currentUser.photo} alt={currentUser.name} className="w-full h-full object-cover" />
+              {currentUser?.photo &&
+              (currentUser.photo.startsWith('http') ||
+                currentUser.photo.startsWith('data:image') ||
+                currentUser.photo.startsWith('/')) ? (
+                <img
+                  src={currentUser.photo}
+                  alt={currentUser.name}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                currentUser?.name?.charAt(0).toUpperCase()
+                <span>
+                  {currentUser?.photo?.length === 1
+                    ? currentUser.photo
+                    : currentUser?.name?.charAt(0).toUpperCase()}
+                </span>
               )}
             </div>
+
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-sm truncate">{currentUser?.name}</p>
-              <p className="text-xs opacity-80 capitalize truncate">{currentUser?.status || 'Disponible'}</p>
+              <p className="text-xs opacity-80 capitalize truncate">
+                {currentUser?.status || 'Disponible'}
+              </p>
             </div>
           </div>
-        </div>
+          </div>
 
         {/* Tabs */}
         <nav className="flex-1 overflow-y-auto">

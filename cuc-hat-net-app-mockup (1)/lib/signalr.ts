@@ -4,7 +4,11 @@ const API_URL = "https://localhost:7086"
 
 let connection: signalR.HubConnection | null = null
 
-export const connectToChat = async (chatId: string, onMessage: (msg: any) => void, onStatus: (data: any) => void) => {
+export const connectToChat = async (
+  chatId: string,
+  onMessage: (msg: any) => void,
+  onStatus: (data: any) => void
+) => {
   connection = new signalR.HubConnectionBuilder()
     .withUrl(`${API_URL}/chathub`)
     .withAutomaticReconnect()
@@ -12,15 +16,13 @@ export const connectToChat = async (chatId: string, onMessage: (msg: any) => voi
 
   await connection.start()
 
-  // 🔥 Unirse al grupo del chat
-  await connection.invoke("JoinChat", `chat-${chatId}`)
+  // Unirse al grupo correcto
+  await connection.invoke("JoinChat", String(chatId))
 
-  // 🔥 Recibir mensajes en tiempo real
   connection.on("ReceiveMessage", (message) => {
     onMessage(message)
   })
 
-  // 🔥 Estado ✔✔
   connection.on("MessageStatusUpdated", (data) => {
     onStatus(data)
   })
@@ -28,5 +30,5 @@ export const connectToChat = async (chatId: string, onMessage: (msg: any) => voi
 
 export const sendTyping = async (chatId: string, userId: string) => {
   if (!connection) return
-  await connection.invoke("Typing", `chat-${chatId}`, userId)
+  await connection.invoke("Typing", String(chatId), userId)
 }

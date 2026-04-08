@@ -1,5 +1,5 @@
 // lib/api.ts
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "https://localhost:7086";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "https://localhost:7086/api";
 
 /**
  * Normaliza URLs para evitar errores de rutas duplicadas o slashes mal puestos.
@@ -22,21 +22,21 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, para
   try {
     let url = getUrl(endpoint);
 
-    // Si hay parámetros, los añadimos a la URL (ej: ?userId=1)
     if (params) {
       const query = new URLSearchParams();
       Object.entries(params).forEach(([key, val]) => {
         if (val !== undefined && val !== null) query.append(key, String(val));
       });
-      url += `?${query.toString()}`;
+      const queryString = query.toString();
+      if (queryString) url += `?${queryString}`;
     }
     
     const isFormData = options.body instanceof FormData;
 
     const response = await fetch(url, {
+      cache: 'no-store', 
       ...options,
       headers: {
-        // No ponemos Content-Type si es FormData, el navegador lo hace solo
         ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...options.headers,
       },
@@ -56,12 +56,18 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}, para
 }
 
 /**
- * Utilidad para limpiar IDs (asegura que sean solo números)
+ * Utilidad para limpiar IDs. 
+ * CORRECCIÓN PARA LOGIN: Si el ID no es puramente numérico (como un email o string), 
+ * lo devuelve tal cual para no romper la autenticación.
  */
 const getCleanId = (id: string | number): string => {
   if (!id) return "0";
-  const match = String(id).match(/\d+/);
-  return match ? match[0] : String(id);
+  const strId = String(id);
+  // Si contiene letras o caracteres especiales (como en el login), no lo limpies
+  if (/[a-zA-Z]/.test(strId)) return strId;
+  
+  const match = strId.match(/\d+/);
+  return match ? match[0] : strId;
 };
 
 // ==========================================
@@ -98,18 +104,18 @@ export async function uploadFile(chatId: string | number, file: File) {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(getUrl(`media/upload/${id}`), {
+  return apiFetch(`media/upload/${id}`, {
     method: 'POST',
     body: formData,
   });
-
-  if (!response.ok) {
-    const errorMsg = await response.text();
-    throw new Error(`Error en subida: ${errorMsg}`);
-  }
-
-  return await response.json();
 }
+
+export const deleteMessage = async (messageId: number | string) => {
+  const mId = getCleanId(messageId);
+  return apiFetch(`Messages/${mId}`, {
+    method: 'DELETE',
+  });
+};
 
 // ==========================================
 // SECCIÓN: ESTADOS (STORY FEED)
@@ -147,9 +153,6 @@ export const deleteState = async (stateId: string | number) => {
 // SECCIÓN: CONTACTOS Y GRUPOS
 // ==========================================
 
-/**
- * Obtiene todos los usuarios (para la lista de creación de grupos)
- */
 export const getContacts = async () => {
   return apiFetch(`users`); 
 };
@@ -164,7 +167,6 @@ export const addContact = async (userId: number, phoneNumber: string) => {
   });
 };
 
-// Reemplaza esto en lib/api.ts
 export async function createGroupApi(groupData: { 
   CurrentUserId: number; 
   GroupName: string; 
@@ -172,8 +174,7 @@ export async function createGroupApi(groupData: {
   GroupDescription?: string;
   GroupPhoto?: string;
 }) {
-  // 🎯 El cambio clave: 'api/chats/group'
-  return apiFetch(`api/chats/group`, {
+  return apiFetch(`chats/group`, {
     method: 'POST',
     body: JSON.stringify(groupData)
   });

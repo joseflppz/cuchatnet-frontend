@@ -49,7 +49,7 @@ export default function SettingsScreen() {
   const [status, setStatus] = useState<StatusType>(normalizeStatus(currentUser?.status as string | undefined))
   const [photo, setPhoto] = useState<string | null>((currentUser?.photo as string) || null)
 
-  // Seguridad (solo lectura desde backend + comportamiento visual local)
+  // Seguridad (solo lectura desde backend + visual local)
   const [autoRenewKeys, setAutoRenewKeys] = useState(false)
   const [e2eEnabled, setE2eEnabled] = useState(true)
   const [deviceVerified, setDeviceVerified] = useState(true)
@@ -66,13 +66,11 @@ export default function SettingsScreen() {
 
   const preferencesInitialized = useRef(false)
 
-  // Código de verificación estable por sesión
   const verificationCode = useMemo(() => {
     const suffix = Math.random().toString(36).slice(2, 11).toUpperCase()
     return `CUC-${suffix}`
   }, [])
 
-  // Cargar ajustes reales desde backend
   useEffect(() => {
     if (!currentUser?.id) return
 
@@ -122,32 +120,6 @@ export default function SettingsScreen() {
       cancelled = true
     }
   }, [currentUser?.id, showToast])
-
-  // Mantener mock/localStorage de seguridad visual
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      const savedSecurity = localStorage.getItem('cuchatnet_security_settings')
-      if (savedSecurity) {
-        const parsed = JSON.parse(savedSecurity)
-        if (typeof parsed.autoRenewKeys === 'boolean') setAutoRenewKeys(parsed.autoRenewKeys)
-        if (typeof parsed.e2eEnabled === 'boolean') setE2eEnabled(parsed.e2eEnabled)
-        if (typeof parsed.deviceVerified === 'boolean') setDeviceVerified(parsed.deviceVerified)
-      }
-    } catch {
-      // ignore
-    }
-  }, [])
-
-  const persistSecuritySettings = (next?: Partial<{ autoRenewKeys: boolean; e2eEnabled: boolean; deviceVerified: boolean }>) => {
-    if (typeof window === 'undefined') return
-    const payload = {
-      autoRenewKeys: next?.autoRenewKeys ?? autoRenewKeys,
-      e2eEnabled: next?.e2eEnabled ?? e2eEnabled,
-      deviceVerified: next?.deviceVerified ?? deviceVerified,
-    }
-    localStorage.setItem('cuchatnet_security_settings', JSON.stringify(payload))
-  }
 
   // Guardado automático de preferencias
   useEffect(() => {
@@ -424,8 +396,7 @@ export default function SettingsScreen() {
                         checked={e2eEnabled}
                         onChange={(e) => {
                           setE2eEnabled(e.target.checked)
-                          persistSecuritySettings({ e2eEnabled: e.target.checked })
-                          showToast('Configuración actualizada', 'success')
+                          showToast('Configuración visual actualizada', 'info')
                         }}
                         className="w-4 h-4 accent-primary"
                       />
@@ -441,8 +412,7 @@ export default function SettingsScreen() {
                         checked={deviceVerified}
                         onChange={(e) => {
                           setDeviceVerified(e.target.checked)
-                          persistSecuritySettings({ deviceVerified: e.target.checked })
-                          showToast('Verificación actualizada', 'info')
+                          showToast('Configuración visual actualizada', 'info')
                         }}
                         className="w-4 h-4 accent-primary"
                       />
@@ -457,8 +427,7 @@ export default function SettingsScreen() {
                         checked={autoRenewKeys}
                         onChange={(e) => {
                           setAutoRenewKeys(e.target.checked)
-                          persistSecuritySettings({ autoRenewKeys: e.target.checked })
-                          showToast('Renovación configurada', 'success')
+                          showToast('Configuración visual actualizada', 'info')
                         }}
                         className="w-4 h-4 accent-primary"
                       />

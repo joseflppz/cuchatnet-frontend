@@ -4,258 +4,546 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { apiFetch } from "@/lib/api";
 
 // --- TIPOS E INTERFACES ---
-export type View = 'landing' | 'login' | 'register' | 'verify-sms' | 'profile-setup' | 'chat' | 'admin-login' | 'admin-dashboard'
+export type View =
+  | 'landing'
+  | 'login'
+  | 'register'
+  | 'verify-sms'
+  | 'profile-setup'
+  | 'chat'
+  | 'admin-login'
+  | 'admin-dashboard'
+
 export type ClientTab = 'chats' | 'groups' | 'contacts' | 'states' | 'settings'
 export type AdminTab = 'dashboard' | 'users' | 'groups' | 'messages' | 'config' | 'security'
 
-export interface User { id: string; phone: string; name: string; nombre?: string; photo?: string; description?: string; status: 'available' | 'busy' | 'away'; createdAt: string; active: boolean; }
-export interface Chat { id: string; participantId: string; participantName: string; participantPhoto?: string; participantDescription?: string; participantStatus?: 'available' | 'busy' | 'away'; lastMessage: string; lastMessageTime: string; unread: number; pinned: boolean; archived: boolean; isGroup: boolean; silenced: boolean; }
-export interface Message { id: string; chatId: string; senderId: string; senderName: string; content: string; timestamp: string; status: 'sending' | 'sent' | 'received' | 'seen'; encrypted: boolean; edited: boolean; deletedForMe: boolean; deletedForAll: boolean; type: 'text' | 'image' | 'video' | 'audio' | 'file'; mediaUrl?: string; }
-export interface Group { id: string; name: string; photo?: string; description?: string; rules?: string; members: Array<{ id: string; name: string; role: 'admin' | 'member' }>; createdAt: string; creatorId: string; permissions: { sendMessages: 'all' | 'admins'; editInfo: 'all' | 'admins' }; }
-export interface Contact { id: string; name: string; phone: string; photo?: string; description?: string; status: 'available' | 'busy' | 'away'; fromAgenda: boolean; }
-export interface State { id: string; userId: string; userName: string; userPhoto?: string; content: string; type: 'text' | 'image' | 'video'; createdAt: string; expiresAt: string; viewedBy: string[]; }
-export interface AdminUser { id: string; phone: string; name: string; status: 'active' | 'inactive' | 'suspended'; createdAt: string; lastActive: string; }
-export interface AdminLog { id: string; timestamp: string; action: string; user: string; details: string; severity: 'info' | 'warning' | 'error'; }
-export interface AdminConfig { maxGroupSize: number; messageTimeout: number; maxFileSize: number; maintenanceMode: boolean; e2eRequired: boolean; autoArchiveInactivity: number; }
-export interface SecurityPolicy { blockAfterFailedAttempts: number; blockDuration: number; keyRotationDays: number; enableDeviceDetection: boolean; enableIdentityVerification: boolean; requireE2EEncryption: boolean; suspiciousLoginTimeout: number; }
+export interface User {
+  id: string
+  phone: string
+  name: string
+  nombre?: string
+  photo?: string
+  description?: string
+  status: 'available' | 'busy' | 'away'
+  createdAt: string
+  active: boolean
+}
+
+export interface Chat {
+  id: string
+  participantId: string
+  participantName: string
+  participantPhoto?: string
+  participantDescription?: string
+  participantStatus?: 'available' | 'busy' | 'away'
+  lastMessage: string
+  lastMessageTime: string
+  unread: number
+  pinned: boolean
+  archived: boolean
+  isGroup: boolean
+  silenced: boolean
+}
+
+export interface Message {
+  id: string
+  chatId: string
+  senderId: string
+  senderName: string
+  content: string
+  timestamp: string
+  status: 'sending' | 'sent' | 'received' | 'seen'
+  encrypted: boolean
+  edited: boolean
+  deletedForMe: boolean
+  deletedForAll: boolean
+  type: 'text' | 'image' | 'video' | 'audio' | 'file'
+  mediaUrl?: string
+}
+
+export interface Group {
+  id: string
+  name: string
+  photo?: string
+  description?: string
+  rules?: string
+  members: Array<{ id: string; name: string; role: 'admin' | 'member' }>
+  createdAt: string
+  creatorId: string
+  permissions: {
+    sendMessages: 'all' | 'admins'
+    editInfo: 'all' | 'admins'
+  }
+}
+
+export interface Contact {
+  id: string
+  name: string
+  phone: string
+  photo?: string
+  description?: string
+  status: 'available' | 'busy' | 'away'
+  fromAgenda: boolean
+}
+
+export interface State {
+  id: string
+  userId: string
+  userName: string
+  userPhoto?: string
+  content: string
+  type: 'text' | 'image' | 'video'
+  createdAt: string
+  expiresAt: string
+  viewedBy: string[]
+}
+
+export interface AdminUser {
+  id: string
+  phone: string
+  name: string
+  status: 'active' | 'inactive' | 'suspended'
+  createdAt: string
+  lastActive: string
+}
+
+export interface AdminLog {
+  id: string
+  timestamp: string
+  action: string
+  user: string
+  details: string
+  severity: 'info' | 'warning' | 'error'
+}
+
+export interface AdminConfig {
+  maxGroupSize: number
+  messageTimeout: number
+  maxFileSize: number
+  maintenanceMode: boolean
+  e2eRequired: boolean
+  autoArchiveInactivity: number
+}
+
+export interface SecurityPolicy {
+  blockAfterFailedAttempts: number
+  blockDuration: number
+  keyRotationDays: number
+  enableDeviceDetection: boolean
+  enableIdentityVerification: boolean
+  requireE2EEncryption: boolean
+  suspiciousLoginTimeout: number
+}
 
 interface AppContextType {
-  currentView: View; setCurrentView: (view: View) => void;
-  currentUser: User | null; setCurrentUser: (user: User | null) => void;
-  isAdmin: boolean; setIsAdmin: (admin: boolean) => void;
-  clientTab: ClientTab; setClientTab: (tab: ClientTab) => void;
-  adminTab: AdminTab; setAdminTab: (tab: AdminTab) => void;
-  currentChatId: string | null; setCurrentChatId: (id: string | null) => void;
-  currentGroupId: string | null; setCurrentGroupId: (id: string | null) => void;
-  chats: Chat[]; setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
-  messages: Message[]; setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
-  groups: Group[]; setGroups: React.Dispatch<React.SetStateAction<Group[]>>;
-  contacts: Contact[]; setContacts: React.Dispatch<React.SetStateAction<Contact[]>>;
-  states: State[]; setStates: React.Dispatch<React.SetStateAction<State[]>>;
-  mutedContacts: string[]; setMutedContacts: React.Dispatch<React.SetStateAction<string[]>>;
-  adminUsers: AdminUser[]; setAdminUsers: (users: AdminUser[]) => void;
-  adminLogs: AdminLog[]; setAdminLogs: (logs: AdminLog[]) => void;
-  adminConfig: AdminConfig; setAdminConfig: (config: AdminConfig) => void;
-  securityPolicy: SecurityPolicy; setSecurityPolicy: (policy: SecurityPolicy) => void;
-  showModal: boolean; setShowModal: (show: boolean) => void;
-  modalContent: string; setModalContent: (content: string) => void;
-  toast: { message: string; type: 'success' | 'error' | 'info' } | null;
-  setToast: React.Dispatch<React.SetStateAction<{ message: string; type: 'success' | 'error' | 'info' } | null>>;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
-  logout: () => void;
-  loadFromLocalStorage: () => void;
-  saveToLocalStorage: () => void;
-  fetchChats: () => Promise<void>;
-  createDirectChat: (contactId: string, contactName: string, contactPhoto?: string) => Promise<void>;
-  createGroupChat: (groupName: string, memberIds: string[], groupPhoto?: string, groupDescription?: string) => Promise<void>;
+  currentView: View
+  setCurrentView: (view: View) => void
+
+  currentUser: User | null
+  setCurrentUser: (user: User | null) => void
+
+  isAdmin: boolean
+  setIsAdmin: (admin: boolean) => void
+
+  clientTab: ClientTab
+  setClientTab: (tab: ClientTab) => void
+
+  adminTab: AdminTab
+  setAdminTab: (tab: AdminTab) => void
+
+  currentChatId: string | null
+  setCurrentChatId: (id: string | null) => void
+
+  currentGroupId: string | null
+  setCurrentGroupId: (id: string | null) => void
+
+  chats: Chat[]
+  setChats: React.Dispatch<React.SetStateAction<Chat[]>>
+
+  messages: Message[]
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>
+
+  groups: Group[]
+  setGroups: React.Dispatch<React.SetStateAction<Group[]>>
+
+  contacts: Contact[]
+  setContacts: React.Dispatch<React.SetStateAction<Contact[]>>
+
+  states: State[]
+  setStates: React.Dispatch<React.SetStateAction<State[]>>
+
+  mutedContacts: string[]
+  setMutedContacts: React.Dispatch<React.SetStateAction<string[]>>
+
+  adminUsers: AdminUser[]
+  setAdminUsers: (users: AdminUser[]) => void
+
+  adminLogs: AdminLog[]
+  setAdminLogs: (logs: AdminLog[]) => void
+
+  adminConfig: AdminConfig
+  setAdminConfig: (config: AdminConfig) => void
+
+  securityPolicy: SecurityPolicy
+  setSecurityPolicy: (policy: SecurityPolicy) => void
+
+  showModal: boolean
+  setShowModal: (show: boolean) => void
+
+  modalContent: string
+  setModalContent: (content: string) => void
+
+  toast: { message: string; type: 'success' | 'error' | 'info' } | null
+  setToast: React.Dispatch<
+    React.SetStateAction<{ message: string; type: 'success' | 'error' | 'info' } | null>
+  >
+  showToast: (message: string, type: 'success' | 'error' | 'info') => void
+
+  logout: () => void
+  loadFromLocalStorage: () => void
+  saveToLocalStorage: () => void
+
+  fetchChats: () => Promise<void>
+  createDirectChat: (contactId: string, contactName: string, contactPhoto?: string) => Promise<void>
+  createGroupChat: (
+    groupName: string,
+    memberIds: string[],
+    groupPhoto?: string,
+    groupDescription?: string
+  ) => Promise<void>
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentView, setCurrentView] = useState<View>('landing')
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [clientTab, setClientTab] = useState<ClientTab>('chats')
-  const [adminTab, setAdminTab] = useState<AdminTab>('dashboard')
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null)
-  const [currentGroupId, setCurrentGroupId] = useState<string | null>(null)
-  const [chats, setChats] = useState<Chat[]>([])
-  const [messages, setMessages] = useState<Message[]>([])
-  const [groups, setGroups] = useState<Group[]>([])
-  const [contacts, setContacts] = useState<Contact[]>([])
-  const [states, setStates] = useState<State[]>([])
-  const [mutedContacts, setMutedContacts] = useState<string[]>([])
-  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([])
-  const [adminLogs, setAdminLogs] = useState<AdminLog[]>([])
-  const [adminConfig, setAdminConfig] = useState<AdminConfig>({ maxGroupSize: 500, messageTimeout: 24, maxFileSize: 100, maintenanceMode: false, e2eRequired: true, autoArchiveInactivity: 90 })
-  const [securityPolicy, setSecurityPolicy] = useState<SecurityPolicy>({ blockAfterFailedAttempts: 5, blockDuration: 15, keyRotationDays: 90, enableDeviceDetection: true, enableIdentityVerification: true, requireE2EEncryption: true, suspiciousLoginTimeout: 30 })
-  const [showModal, setShowModal] = useState(false)
-  const [modalContent, setModalContent] = useState('')
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [currentView, setCurrentView] = useState<View>('landing')
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [clientTab, setClientTab] = useState<ClientTab>('chats')
+  const [adminTab, setAdminTab] = useState<AdminTab>('dashboard')
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null)
+  const [currentGroupId, setCurrentGroupId] = useState<string | null>(null)
+  const [chats, setChats] = useState<Chat[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
+  const [groups, setGroups] = useState<Group[]>([])
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [states, setStates] = useState<State[]>([])
+  const [mutedContacts, setMutedContacts] = useState<string[]>([])
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([])
+  const [adminLogs, setAdminLogs] = useState<AdminLog[]>([])
+  const [adminConfig, setAdminConfig] = useState<AdminConfig>({
+    maxGroupSize: 500,
+    messageTimeout: 24,
+    maxFileSize: 100,
+    maintenanceMode: false,
+    e2eRequired: true,
+    autoArchiveInactivity: 90,
+  })
+  const [securityPolicy, setSecurityPolicy] = useState<SecurityPolicy>({
+    blockAfterFailedAttempts: 5,
+    blockDuration: 15,
+    keyRotationDays: 90,
+    enableDeviceDetection: true,
+    enableIdentityVerification: true,
+    requireE2EEncryption: true,
+    suspiciousLoginTimeout: 30,
+  })
+  const [showModal, setShowModal] = useState(false)
+  const [modalContent, setModalContent] = useState('')
+  const [toast, setToast] = useState<{
+    message: string
+    type: 'success' | 'error' | 'info'
+  } | null>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
 
-  // --- PERSISTENCIA INTEGRADA ---
-  const loadFromLocalStorage = () => {
-    if (typeof window === 'undefined') return
-    try {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        const parsedUser = JSON.parse(savedUser);
-        const userId = (parsedUser.usuarioId || parsedUser.id)?.toString();
-        
-        if (userId && userId !== "undefined") {
-          setCurrentUser({ ...parsedUser, id: userId });
-          const savedChats = localStorage.getItem(`chats_${userId}`);
-          if (savedChats) setChats(JSON.parse(savedChats));
-        }
-      }
-      setIsLoaded(true);
-    } catch (e) {
-      console.error("Error cargando LocalStorage:", e);
-      setIsLoaded(true);
-    }
-  }
+  const loadFromLocalStorage = () => {
+    if (typeof window === 'undefined') return
 
-  const saveToLocalStorage = () => {
-    if (typeof window === 'undefined' || !isLoaded || !currentUser) return
-    try {
-      localStorage.setItem('user', JSON.stringify(currentUser));
-      localStorage.setItem(`chats_${currentUser.id}`, JSON.stringify(chats));
-    } catch (e) { console.error(e); }
-  }
+    try {
+      const savedUser = localStorage.getItem('user')
 
-  const logout = () => {
-    localStorage.clear();
-    setCurrentUser(null);
-    setChats([]);
-    setMessages([]);
-    setContacts([]);
-    setGroups([]);
-    setCurrentChatId(null);
-    setCurrentView('landing');
-  }
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser)
+        const userId = (parsedUser.usuarioId || parsedUser.id)?.toString()
 
-  useEffect(() => { loadFromLocalStorage() }, [])
+        if (userId && userId !== 'undefined') {
+          setCurrentUser({ ...parsedUser, id: userId })
 
-  useEffect(() => {
-    if (isLoaded && currentUser) {
-      saveToLocalStorage();
-      fetchChats();
-    }
-  }, [currentUser, isLoaded])
+          const savedChats = localStorage.getItem(`chats_${userId}`)
+          if (savedChats) {
+            setChats(JSON.parse(savedChats))
+          }
+        }
+      }
 
-  // --- FETCH DE CHATS (REFORZADO) ---
-  const fetchChats = async () => {
-    if (!currentUser?.id) return;
-    try {
-      // CORRECCIÓN PARA SWAGGER: se cambió 'chats/user/' por 'users/${id}/chats'
-      const data = await apiFetch(`users/${currentUser.id}/chats`);
-      if (!Array.isArray(data)) return;
+      setIsLoaded(true)
+    } catch (e) {
+      console.error('Error cargando LocalStorage:', e)
+      setIsLoaded(true)
+    }
+  }
 
-      const mappedChats: Chat[] = data.map((c: any) => {
-        const name = c.nombre || c.otroUsuarioNombre || c.nombreGrupo || c.otherUserName || (c.esGrupo ? "Grupo" : "Chat Privado");
-        
-        return {
-          id: (c.id || c.chatId || c.idChat).toString(),
-          participantId: (c.otroUsuarioId || c.otherUserId || c.idParticipante || '').toString(),
-          participantName: name, 
-          participantPhoto: c.fotoUrl || c.foto || "",
-          lastMessage: c.ultimoMensaje || c.lastMessage || "Sin mensajes",
-          lastMessageTime: c.fechaUltimoMensaje || c.lastMessageTime || new Date().toISOString(),
-          unread: 0, pinned: false, archived: false, isGroup: c.esGrupo || false, silenced: false,
-        };
-      });
-      
-      setChats(mappedChats);
-      localStorage.setItem(`chats_${currentUser.id}`, JSON.stringify(mappedChats));
-    } catch (error) { 
-      console.error("Error en fetchChats:", error); 
-    }
-  };
+  const saveToLocalStorage = () => {
+    if (typeof window === 'undefined' || !isLoaded || !currentUser) return
 
-  // --- CREAR CHAT ---
-  const createDirectChat = async (contactId: string, contactName: string, contactPhoto?: string) => {
-    if (!currentUser?.id) return;
-    
-    const existing = chats.find(c => String(c.participantId) === String(contactId) && !c.isGroup);
-    if (existing) {
-      setCurrentChatId(existing.id);
-      setClientTab('chats');
-      return;
-    }
+    try {
+      localStorage.setItem('user', JSON.stringify(currentUser))
+      localStorage.setItem(`chats_${currentUser.id}`, JSON.stringify(chats))
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
-    try {
-      // IMPLEMENTACIÓN SOLICITADA
-      const response = await apiFetch('chats/direct', {
-        method: 'POST',
-        body: JSON.stringify({
-          currentUserId: Number(currentUser.id),
-          contactUserId: Number(contactId)
-        })
-      });
+  const logout = () => {
+    localStorage.clear()
+    setCurrentUser(null)
+    setChats([])
+    setMessages([])
+    setContacts([])
+    setGroups([])
+    setCurrentChatId(null)
+    setCurrentView('landing')
+  }
 
-      const newId = (response.id || response.chatId || response.idChat).toString();
+  useEffect(() => {
+    loadFromLocalStorage()
+  }, [])
 
-      const newChat: Chat = {
-        id: newId,
-        participantId: contactId,
-        participantName: contactName,
-        participantPhoto: contactPhoto || "",
-        lastMessage: "Nuevo chat",
-        lastMessageTime: new Date().toISOString(),
-        unread: 0, pinned: false, archived: false, isGroup: false, silenced: false
-      };
+  useEffect(() => {
+    if (isLoaded && currentUser) {
+      saveToLocalStorage()
+      fetchChats()
+    }
+  }, [currentUser, isLoaded])
 
-      setChats(prev => [newChat, ...prev]);
-      setCurrentChatId(newId);
-      setClientTab('chats');
-      
-    } catch (error) {
-      showToast("Error al conectar con el chat", "error");
-    }
-  }
+  const fetchChats = async () => {
+    if (!currentUser?.id) return
 
-  // --- CREAR GRUPO ---
-  const createGroupChat = async (groupName: string, memberIds: string[], groupPhoto?: string, groupDescription?: string) => {
-    if (!currentUser?.id) return;
-    try {
-      // IMPLEMENTACIÓN SOLICITADA
-      const response = await apiFetch('chats/group', {
-        method: 'POST',
-        body: JSON.stringify({
-          currentUserId: Number(currentUser.id),
-          groupName: groupName,
-          memberIds: memberIds.map(id => Number(id)),
-          groupPhoto: groupPhoto || "",
-          groupDescription: groupDescription || ""
-        })
-      });
+    try {
+      const data = await apiFetch(`users/${currentUser.id}/chats`)
+      if (!Array.isArray(data)) return
 
-      const newId = (response.id || response.chatId || response.idChat).toString();
+      const mappedChats: Chat[] = data.map((c: any) => {
+        const isGroup = c.isGroup ?? c.esGrupo ?? false
 
-      const newGroup: Chat = {
-        id: newId,
-        participantId: "0",
-        participantName: groupName,
-        participantPhoto: groupPhoto || "",
-        lastMessage: "Grupo creado",
-        lastMessageTime: new Date().toISOString(),
-        unread: 0, pinned: false, archived: false, isGroup: true, silenced: false
-      };
+        return {
+          id: String(c.chatId ?? c.id ?? c.idChat ?? ''),
+          participantId: String(
+            c.participantId ??
+              c.otroUsuarioId ??
+              c.otherUserId ??
+              c.idParticipante ??
+              ''
+          ),
+          participantName:
+            c.participantName ??
+            c.nombre ??
+            c.otroUsuarioNombre ??
+            c.nombreGrupo ??
+            c.otherUserName ??
+            (isGroup ? 'Grupo' : 'Chat Privado'),
+          participantPhoto:
+            c.participantPhoto ??
+            c.fotoUrl ??
+            c.foto ??
+            '',
+          participantDescription:
+            c.participantDescription ??
+            c.descripcion ??
+            '',
+          participantStatus:
+            c.participantStatus ??
+            c.estadoPerfil ??
+            'available',
+          lastMessage:
+            c.lastMessage ??
+            c.ultimoMensaje ??
+            'Sin mensajes',
+          lastMessageTime:
+            c.lastMessageTime ??
+            c.fechaUltimoMensaje ??
+            new Date().toISOString(),
+          unread: c.unread ?? 0,
+          pinned: c.pinned ?? c.fijado ?? false,
+          archived: c.archived ?? c.archivado ?? false,
+          isGroup,
+          silenced: c.silenced ?? c.silenciado ?? false,
+        }
+      })
 
-      setChats(prev => [newGroup, ...prev]);
-      setCurrentChatId(newId);
-      setClientTab('chats');
-      showToast("Grupo creado con éxito", "success");
-    } catch (error) {
-      showToast("Error al crear el grupo", "error");
-    }
-  }
+      setChats((prev) => {
+        if (JSON.stringify(prev) === JSON.stringify(mappedChats)) return prev
+        return mappedChats
+      })
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
-    setToast({ message, type }); setTimeout(() => setToast(null), 3000);
-  }
+      localStorage.setItem(`chats_${currentUser.id}`, JSON.stringify(mappedChats))
+    } catch (error) {
+      console.error('Error en fetchChats:', error)
+    }
+  }
 
-  return (
-    <AppContext.Provider value={{
-      currentView, setCurrentView, currentUser, setCurrentUser, isAdmin, setIsAdmin,
-      clientTab, setClientTab, adminTab, setAdminTab, currentChatId, setCurrentChatId,
-      currentGroupId, setCurrentGroupId, chats, setChats, groups, setGroups,
-      contacts, setContacts, states, setStates, messages, setMessages,
-      mutedContacts, setMutedContacts, adminUsers, setAdminUsers, adminLogs, setAdminLogs,
-      adminConfig, setAdminConfig, securityPolicy, setSecurityPolicy,
-      showModal, setShowModal, modalContent, setModalContent, toast, setToast, showToast,
-      logout, loadFromLocalStorage, saveToLocalStorage, fetchChats,
-      createDirectChat, createGroupChat
-    }}>
-      {children}
-    </AppContext.Provider>
-  )
+  const createDirectChat = async (
+    contactId: string,
+    contactName: string,
+    contactPhoto?: string
+  ) => {
+    if (!currentUser?.id) return
+
+    const existing = chats.find(
+      (c) => String(c.participantId) === String(contactId) && !c.isGroup
+    )
+
+    if (existing) {
+      setCurrentChatId(existing.id)
+      setClientTab('chats')
+      return
+    }
+
+    try {
+      const response = await apiFetch('chats/direct', {
+        method: 'POST',
+        body: JSON.stringify({
+          currentUserId: Number(currentUser.id),
+          contactUserId: Number(contactId),
+        }),
+      })
+
+      const newId = (response.id || response.chatId || response.idChat).toString()
+
+      const newChat: Chat = {
+        id: newId,
+        participantId: contactId,
+        participantName: contactName,
+        participantPhoto: contactPhoto || '',
+        lastMessage: 'Nuevo chat',
+        lastMessageTime: new Date().toISOString(),
+        unread: 0,
+        pinned: false,
+        archived: false,
+        isGroup: false,
+        silenced: false,
+      }
+
+      setChats((prev) => [newChat, ...prev])
+      setCurrentChatId(newId)
+      setClientTab('chats')
+    } catch (error) {
+      showToast('Error al conectar con el chat', 'error')
+    }
+  }
+
+  const createGroupChat = async (
+    groupName: string,
+    memberIds: string[],
+    groupPhoto?: string,
+    groupDescription?: string
+  ) => {
+    if (!currentUser?.id) return
+
+    try {
+      const response = await apiFetch('chats/group', {
+        method: 'POST',
+        body: JSON.stringify({
+          currentUserId: Number(currentUser.id),
+          groupName,
+          memberIds: memberIds.map((id) => Number(id)),
+          groupPhoto: groupPhoto || '',
+          groupDescription: groupDescription || '',
+        }),
+      })
+
+      const newId = (response.id || response.chatId || response.idChat).toString()
+
+      const newGroup: Chat = {
+        id: newId,
+        participantId: '0',
+        participantName: groupName,
+        participantPhoto: groupPhoto || '',
+        lastMessage: 'Grupo creado',
+        lastMessageTime: new Date().toISOString(),
+        unread: 0,
+        pinned: false,
+        archived: false,
+        isGroup: true,
+        silenced: false,
+      }
+
+      setChats((prev) => [newGroup, ...prev])
+      setCurrentChatId(newId)
+      setClientTab('chats')
+      showToast('Grupo creado con éxito', 'success')
+    } catch (error) {
+      showToast('Error al crear el grupo', 'error')
+    }
+  }
+
+  const showToast = (
+    message: string,
+    type: 'success' | 'error' | 'info'
+  ) => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  return (
+    <AppContext.Provider
+      value={{
+        currentView,
+        setCurrentView,
+        currentUser,
+        setCurrentUser,
+        isAdmin,
+        setIsAdmin,
+        clientTab,
+        setClientTab,
+        adminTab,
+        setAdminTab,
+        currentChatId,
+        setCurrentChatId,
+        currentGroupId,
+        setCurrentGroupId,
+        chats,
+        setChats,
+        groups,
+        setGroups,
+        contacts,
+        setContacts,
+        states,
+        setStates,
+        messages,
+        setMessages,
+        mutedContacts,
+        setMutedContacts,
+        adminUsers,
+        setAdminUsers,
+        adminLogs,
+        setAdminLogs,
+        adminConfig,
+        setAdminConfig,
+        securityPolicy,
+        setSecurityPolicy,
+        showModal,
+        setShowModal,
+        modalContent,
+        setModalContent,
+        toast,
+        setToast,
+        showToast,
+        logout,
+        loadFromLocalStorage,
+        saveToLocalStorage,
+        fetchChats,
+        createDirectChat,
+        createGroupChat,
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  )
 }
 
 export const useApp = () => {
-  const context = useContext(AppContext)
-  if (!context) throw new Error('useApp must be used within AppProvider')
-  return context
+  const context = useContext(AppContext)
+  if (!context) throw new Error('useApp must be used within AppProvider')
+  return context
 }
