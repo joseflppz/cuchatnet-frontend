@@ -1,10 +1,10 @@
 using CUChatNet.Api.Data;
 using CUChatNet.Api.Dtos;
 using CUChatNet.Api.Models;
- // Importante para el Hub
+using CUChatNet.Api.Services; // Asegúrate de que el namespace coincida
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.SignalR; // Importante para SignalR
+using Microsoft.AspNetCore.SignalR;
 
 namespace CUChatNet.Api.Controllers;
 
@@ -13,18 +13,21 @@ namespace CUChatNet.Api.Controllers;
 public class MessagesController : ControllerBase
 {
     private readonly CUChatNetDbContext _db;
-    private readonly IHubContext<ChatHub> _hubContext; // 🔥 Inyección del Hub
+    private readonly IHubContext<ChatHub> _hubContext;
+    private readonly EncryptionService _encryptionService;
 
-    public MessagesController(CUChatNetDbContext db, IHubContext<ChatHub> hubContext)
+    public MessagesController(CUChatNetDbContext db, IHubContext<ChatHub> hubContext, EncryptionService encryptionService)
     {
         _db = db;
         _hubContext = hubContext;
+        _encryptionService = encryptionService;
     }
 
     [HttpGet("chats/{chatId:long}/messages")]
     public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessages(long chatId, [FromQuery] long? userId = null)
     {
         var messages = await _db.Mensajes
+            .AsNoTracking()
             .Where(m => m.ChatId == chatId)
             .Include(m => m.RemitenteUsuario)
             .Include(m => m.Adjuntos)
@@ -38,12 +41,19 @@ public class MessagesController : ControllerBase
                 ? m.Estados.FirstOrDefault(e => e.UsuarioId == userId.Value)
                 : null;
 
+            // DESCIFRADO: Si el mensaje está marcado como encriptado y no está eliminado
+            string contenidoAMostrar = m.Contenido ?? "";
+            if (m.Encriptado && !m.EliminadoParaTodos && m.TipoMensaje == "text")
+            {
+                contenidoAMostrar = _encryptionService.Decrypt(contenidoAMostrar);
+            }
+
             return new MessageDto(
                 m.MensajeId,
                 m.ChatId,
                 m.RemitenteUsuarioId,
                 m.RemitenteUsuario.Nombre,
-                m.Contenido ?? "",
+                contenidoAMostrar,
                 m.FechaEnvio,
                 userState?.Estado ?? (m.EstadoServidor == "sent" ? "sent" : m.EstadoServidor),
                 m.Encriptado,
@@ -65,20 +75,24 @@ public class MessagesController : ControllerBase
             .Include(c => c.Participantes)
             .FirstOrDefaultAsync(c => c.ChatId == chatId && c.Activo);
 
-        if (chat is null)
-            return NotFound(new { error = "Chat no encontrado." });
+        if (chat is null) return NotFound(new { error = "Chat no encontrado." });
 
         var sender = await _db.Usuarios.FirstOrDefaultAsync(u => u.UsuarioId == request.SenderId && !u.Eliminado);
-        if (sender is null)
-            return BadRequest(new { error = "Remitente no válido." });
+        if (sender is null) return BadRequest(new { error = "Remitente no válido." });
 
-        // 1. Crear el objeto del mensaje
+        // CIFRADO: Ciframos el contenido antes de guardarlo en la base de datos
+        string contenidoFinal = request.Content;
+        if (request.Type == "text")
+        {
+            contenidoFinal = _encryptionService.Encrypt(request.Content);
+        }
+
         var message = new Mensaje
         {
             ChatId = chatId,
             RemitenteUsuarioId = request.SenderId,
             TipoMensaje = request.Type,
-            Contenido = request.Content,
+            Contenido = contenidoFinal, // Aquí se guarda el "garabato" cifrado
             Encriptado = true,
             Editado = false,
             EliminadoParaTodos = false,
@@ -88,9 +102,9 @@ public class MessagesController : ControllerBase
         };
 
         _db.Mensajes.Add(message);
-        await _db.SaveChangesAsync(); // Guardamos para obtener el ID
+        await _db.SaveChangesAsync();
 
-        // 2. Manejo de adjuntos
+        // Manejo de adjuntos...
         if (!string.IsNullOrWhiteSpace(request.MediaUrl) && request.Type != "text")
         {
             _db.MensajeAdjuntos.Add(new MensajeAdjunto
@@ -107,11 +121,8 @@ public class MessagesController : ControllerBase
             await _db.SaveChangesAsync();
         }
 
-        // 3. Crear estados para los receptores
-        var receivers = chat.Participantes
-            .Where(p => p.Activo && p.UsuarioId != request.SenderId)
-            .ToList();
-
+        // Crear estados para los receptores...
+        var receivers = chat.Participantes.Where(p => p.Activo && p.UsuarioId != request.SenderId).ToList();
         foreach (var receiver in receivers)
         {
             _db.MensajeEstados.Add(new MensajeEstado
@@ -123,43 +134,40 @@ public class MessagesController : ControllerBase
                 EliminadoParaMi = false
             });
         }
-
-        // 4. Bitácora
-        _db.BitacoraEventos.Add(new BitacoraEvento
-        {
-            Categoria = "message",
-            UsuarioId = request.SenderId,
-            Accion = "Mensaje enviado",
-            Detalles = $"ChatID: {chatId}, Tipo: {request.Type}",
-            Severidad = "info",
-            DireccionIp = HttpContext.Connection.RemoteIpAddress?.ToString(),
-            FechaEvento = DateTime.UtcNow
-        });
-
         await _db.SaveChangesAsync();
 
-        // 5. 🔥 ESTRUCTURA PARA EL TIEMPO REAL (SIGNALR)
+        // SIGNALR: Enviamos el contenido ORIGINAL (sin cifrar) para que el que recibe lo vea de inmediato
         var messageData = new
         {
             id = message.MensajeId,
             chatId = message.ChatId,
             senderId = message.RemitenteUsuarioId,
             senderName = sender.Nombre,
-            content = message.Contenido,
+            content = request.Content, // Texto plano para tiempo real
             timestamp = message.FechaEnvio,
             status = "sent",
-            encrypted = message.Encriptado,
-            edited = message.Editado,
-            deletedForMe = false,
-            deletedForAll = message.EliminadoParaTodos,
             type = message.TipoMensaje,
             mediaUrl = request.MediaUrl
         };
 
-        // 🔥 NOTIFICAR A SIGNALR: Enviamos el mensaje al grupo del ChatId
         await _hubContext.Clients.Group(chatId.ToString()).SendAsync("ReceiveMessage", messageData);
-
         return Ok(messageData);
+    }
+
+    [HttpDelete("messages/{messageId:long}")]
+    public async Task<IActionResult> DeleteMessage(long messageId)
+    {
+        var message = await _db.Mensajes.FindAsync(messageId);
+        if (message == null) return NotFound();
+
+        message.EliminadoParaTodos = true;
+        message.Contenido = "Este mensaje fue eliminado"; // No necesita cifrado al estar eliminado
+        message.Encriptado = false;
+
+        await _db.SaveChangesAsync();
+        await _hubContext.Clients.Group(message.ChatId.ToString()).SendAsync("MessageDeleted", messageId);
+
+        return Ok(new { success = true });
     }
 
     [HttpPatch("messages/{messageId:long}/status")]
@@ -168,33 +176,22 @@ public class MessagesController : ControllerBase
         var state = await _db.MensajeEstados
             .FirstOrDefaultAsync(x => x.MensajeId == messageId && x.UsuarioId == request.UserId);
 
-        if (state is null)
-            return NotFound(new { error = "Estado de mensaje no encontrado." });
+        if (state is null) return NotFound();
 
         state.Estado = request.Status;
-
-        if (request.Status == "received" && state.FechaEntrega is null)
-            state.FechaEntrega = DateTime.UtcNow;
-
-        if (request.Status == "seen")
-            state.FechaVista = DateTime.UtcNow;
+        if (request.Status == "received" && state.FechaEntrega is null) state.FechaEntrega = DateTime.UtcNow;
+        if (request.Status == "seen") state.FechaVista = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
-
         return Ok(new { success = true });
     }
-    // Añade este método a tu MessagesController.cs
 
     [HttpPatch("chats/{chatId:long}/read")]
     public async Task<IActionResult> MarkChatAsRead(long chatId, [FromQuery] long userId)
     {
-        // Buscamos todos los estados de mensajes en este chat que pertenecen al usuario 
-        // y que aún no han sido leídos ('seen')
         var unreadStates = await _db.MensajeEstados
             .Include(e => e.Mensaje)
-            .Where(e => e.Mensaje.ChatId == chatId &&
-                        e.UsuarioId == userId &&
-                        e.Estado != "seen")
+            .Where(e => e.Mensaje.ChatId == chatId && e.UsuarioId == userId && e.Estado != "seen")
             .ToListAsync();
 
         if (!unreadStates.Any()) return Ok(new { message = "Sin mensajes pendientes" });
@@ -206,8 +203,6 @@ public class MessagesController : ControllerBase
         }
 
         await _db.SaveChangesAsync();
-
-        // 🔥 Notificamos por SignalR a los demás en el chat que sus mensajes fueron leídos
         await _hubContext.Clients.Group(chatId.ToString()).SendAsync("ChatReadByPeer", userId);
 
         return Ok(new { success = true, count = unreadStates.Count });

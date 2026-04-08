@@ -3,6 +3,7 @@ using CUChatNet.Api.Dtos;
 using CUChatNet.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CUChatNet.Api.Servicios;
 
 namespace CUChatNet.Api.Controllers;
 
@@ -11,14 +12,16 @@ namespace CUChatNet.Api.Controllers;
 public class ContactosController : ControllerBase
 {
     private readonly CUChatNetDbContext _db;
+    private readonly IContactosServicio _contactosServicio;
 
-    public ContactosController(CUChatNetDbContext db)
+    public ContactosController(CUChatNetDbContext db, IContactosServicio contactosServicio)
     {
         _db = db;
+        _contactosServicio = contactosServicio;
     }
 
     // GET: api/contactos/{userId}
-    [HttpGet("{userId:long}")]
+    [HttpGet("{userId:long}")]  
     public async Task<ActionResult<IEnumerable<dynamic>>> GetContactos(long userId)
     {
         try
@@ -88,7 +91,7 @@ public class ContactosController : ControllerBase
         {
             UsuarioId = request.UserId,
             ContactoUsuarioId = targetUser.UsuarioId,
-            Alias = null,
+            Alias = string.IsNullOrWhiteSpace(request.Alias) ? null : request.Alias.Trim(),
             SincronizadoAgenda = false,
             Activo = true,
             FechaAgregado = DateTime.UtcNow
@@ -117,11 +120,44 @@ public class ContactosController : ControllerBase
             contactoId = targetUser.UsuarioId
         });
     }
+
+    [HttpPut("{contactoUsuarioId:long}")]
+    public async Task<IActionResult> EditarContacto(long contactoUsuarioId, [FromBody] EditContactoRequest request)
+    {
+        var ok = await _contactosServicio.EditarContactoAsync(
+            request.UserId,
+            contactoUsuarioId,
+            request.Alias,
+            HttpContext.Connection.RemoteIpAddress?.ToString());
+
+        if (!ok)
+            return NotFound(new { error = "Contacto no encontrado o no pertenece al usuario." });
+
+        return Ok(new { message = "Contacto editado correctamente." });
+    }
+
+    [HttpDelete("{contactoUsuarioId:long}")]
+    public async Task<IActionResult> EliminarContacto(long contactoUsuarioId, [FromQuery] long userId)
+    {
+        var ok = await _contactosServicio.EliminarContactoAsync(
+            userId,
+            contactoUsuarioId,
+            HttpContext.Connection.RemoteIpAddress?.ToString());
+
+        if (!ok)
+            return NotFound(new { error = "Contacto no encontrado o no pertenece al usuario." });
+
+        return Ok(new { message = "Contacto eliminado correctamente." });
+    }
 }
+
+
 
 // Si esta clase ya existe en tu carpeta DTOs, puedes borrarla de aquí para evitar errores de duplicado
 public class AddContactoRequest
 {
     public long UserId { get; set; }
     public string ContactoPhone { get; set; } = string.Empty;
+
+    public string? Alias { get; set; }
 }

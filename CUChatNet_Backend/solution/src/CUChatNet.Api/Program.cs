@@ -1,4 +1,7 @@
-﻿using CUChatNet.Api.Data; // Asegúrate de crear la carpeta Hubs
+﻿using CUChatNet.Api;
+using CUChatNet.Api.Data; // Asegúrate de crear la carpeta Hubs
+using CUChatNet.Api.Services;
+using CUChatNet.Api.Servicios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -10,9 +13,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddScoped<ICorreoRecuperacionAdminServicio, CorreoRecuperacionAdminServicio>();
+builder.Services.AddScoped<IContactosServicio, ContactosServicio>();    
 
 // 1. AGREGAR SIGNALR PARA CHAT EN VIVO
 builder.Services.AddSignalR();
+
+
+builder.Services.AddSingleton<EncryptionService>();
 
 builder.Services.AddSwaggerGen(c =>
 {
